@@ -1,0 +1,113 @@
+<main>
+  <section class="add-flight-section">
+    <div class="container">
+      <h2>Добавить рейс</h2>
+      <form id="flightForm" action="/api/flight" method="POST" class="add-flight-form">
+        <div class="form-row">
+      
+          <%- include('../../partials/select_part/route-select.ejs', { routes }) %>
+      
+          <!-- Дата отправления -->
+          <div class="form-group">
+            <label for="date">Дата отправления:</label>
+            <input type="date" id="date" name="date" min="<%= new Date().toISOString().split('T')[0] %>" required>
+          </div>
+      
+          <!-- Время отправления -->
+          <div class="form-group">
+            <label for="start_time">Время отправления:</label>
+            <input type="time" id="start_time" name="start_time" required>
+          </div>
+      
+          <%- include('../../partials/select_part/car-select.ejs', { cars }) %>
+          <%- include('../../partials/select_part/driver-select', { drivers }) %>
+      
+          <!-- Цена -->
+          <div class="form-group">
+            <label for="price">Цена:</label>
+            <input type="number" id="price" name="price" min="0" required>
+          </div>
+      
+          <!-- Обратный рейс -->
+          <div class="form-group">
+            <label for="return_flight">Обратный рейс:</label>
+            <select id="return_flight" name="return_flight" required>
+              <option value="false" selected>Нет</option>
+              <option value="true">Да</option>
+            </select>
+          </div>
+      
+          <!-- Кнопка -->
+          <div class="form-group">
+            <button type="submit">Добавить рейс</button>
+          </div>
+      
+        </div>
+      </form>
+      
+    </div>
+  </section>
+
+  <%- include('../../partials/tables/flights-table', { flights }) %>
+
+</main>
+
+
+
+
+<script>
+  document.querySelector('.add-flight-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const date = document.getElementById('date').value;
+    const time = document.getElementById('start_time').value;
+    const route_id = document.querySelector('select[name="route_id"]').value;
+    const car_id = document.querySelector('select[name="car_id"]').value;
+    const driver_id = document.querySelector('select[name="driver_id"]').value;
+    const price = document.getElementById('price').value;
+    const return_flight = document.getElementById('return_flight').value === 'true';
+
+    if (!date || !time) {
+      alert('Введите дату и время отправления');
+      return;
+    }
+
+    const combined = date + 'T' + time + ':00';
+
+    if (isNaN(Date.parse(combined))) {
+      alert('Некорректный формат даты и времени');
+      return;
+    }
+
+    const data = {
+      route_id: Number(route_id),
+      car_id: Number(car_id),
+      driver_id: Number(driver_id),
+      price: Number(price),
+      start_time: combined,
+      return_flight: return_flight,
+    };
+    console.log(data);
+    try {
+      const response = await fetch(this.action, {
+        method: this.method,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert(errorData.error || 'Ошибка сервера');
+        return;
+      }
+
+      window.location.reload();
+
+    } catch (err) {
+      alert('Ошибка сети или сервера');
+      console.error(err);
+    }
+  });
+</script>

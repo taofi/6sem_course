@@ -1,0 +1,9 @@
+
+<div class="error-page">
+    <h1>500</h1>
+    <p>Произошла внутренняя ошибка сервера.</p>
+    <% if (error) { %>
+        <pre class="error-details"><%= error.stack %></pre>
+    <% } %>
+    <a href="/" class="btn">Вернуться на главную</a>
+</div>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tickets API</title>
+    <script>
+        const apiUrl = '/api/tickets';
+
+        // Получение списка билетов
+        async function fetchTickets() {
+            const response = await fetch(apiUrl);
+            const tickets = await response.json();
+            displayTickets(tickets);
+        }
+
+        // Отображение билетов в таблице
+        function displayTickets(tickets) {
+            const tableBody = document.getElementById('ticketsTableBody');
+            tableBody.innerHTML = ''; 
+            tickets.forEach(ticket => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${ticket.ticket_id}</td>
+                    <td>${ticket.user_id}</td>
+                    <td>${ticket.flight_id}</td>
+                    <td>${ticket.stop_id}</td>
+                    <td>${ticket.count}</td>
+                    <td>
+                        <button onclick="updateTicket(${ticket.ticket_id})">Update</button>
+                        <button onclick="deleteTicket(${ticket.ticket_id})">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Создание билета (POST)
+        async function createTicket(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {
+                user_id: parseInt(formData.get('user_id'), 10),
+                flight_id: parseInt(formData.get('flight_id'), 10),
+                stop_id: parseInt(formData.get('stop_id'), 10),
+                count: parseInt(formData.get('count'), 10)
+            };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message || 'Билет добавлен!');
+                await fetchTickets();
+                event.target.reset();
+            } else {
+                alert(result.error || 'Ошибка при добавлении билета.');
+            }
+        }
+
+        // Обновление билета (PUT)
+        async function updateTicket(ticketId) {
+            const newUserId = prompt("Введите новый ID пользователя:");
+            const newFlightId = prompt("Введите новый ID рейса:");
+            const newStopId = prompt("Введите новый ID остановки:");
+            const newCount = prompt("Введите новое количество билетов:");
+
+            const data = {
+                ticket_id: ticketId,
+                user_id: parseInt(newUserId, 10),
+                flight_id: parseInt(newFlightId, 10),
+                stop_id: parseInt(newStopId, 10),
+                count: parseInt(newCount, 10)
+            };
+
+            const response = await fetch(`${apiUrl}/${ticketId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message || 'Билет обновлен!');
+                await fetchTickets();
+            } else {
+                alert(result.error || 'Ошибка при обновлении билета.');
+            }
+        }
+
+        // Удаление билета (DELETE)
+        async function deleteTicket(ticketId) {
+            const confirmDelete = confirm("Вы уверены, что хотите удалить этот билет?");
+            if (confirmDelete) {
+                const response = await fetch(`${apiUrl}/${ticketId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message || 'Билет удален!');
+                    await fetchTickets();
+                } else {
+                    alert(result.error || 'Ошибка при удалении билета.');
+                }
+            }
+        }
+
+        // Обновление данных
+        function refreshData() {
+            fetchTickets();
+        }
+
+        window.onload = fetchTickets;
+    </script>
+</head>
+<body>
+    <h1>Управление билетами</h1>
+    <form id="ticketForm" onsubmit="createTicket(event)">
+        <label for="user_id">Пользователь ID:</label>
+        <input type="number" name="user_id" required>
+        <label for="flight_id">Рейс ID:</label>
+        <input type="number" name="flight_id" required>
+        <label for="stop_id">Остановка ID:</label>
+        <input type="number" name="stop_id" required>
+        <label for="count">Количество:</label>
+        <input type="number" name="count" required>
+        <button type="submit">Добавить билет</button>
+    </form>
+    <h2>Список билетов</h2>
+    <button onclick="refreshData()">Обновить данные</button>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Пользователь</th>
+                <th>Рейс</th>
+                <th>Остановка</th>
+                <th>Количество</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody id="ticketsTableBody">
+            <!-- Данные вставляются здесь -->
+        </tbody>
+    </table>
+</body>
+</html>

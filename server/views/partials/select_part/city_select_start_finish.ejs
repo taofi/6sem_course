@@ -1,0 +1,18 @@
+<div class="form-group">
+    <label for="start_city_id">Город отправления:</label>
+    <select id="start_city_id" name="start_city_id" required>
+      <% cities.forEach(city => { %>
+        <option value="<%= city.city_id %>"><%= city.name %></option>
+      <% }); %>
+    </select>
+  </div>
+  
+  <div class="form-group">
+    <label for="finish_city_id">Город прибытия:</label>
+    <select id="finish_city_id" name="finish_city_id" required>
+      <% cities.forEach(city => { %>
+        <option value="<%= city.city_id %>"><%= city.name %></option>
+      <% }); %>
+    </select>
+  </div>
+  

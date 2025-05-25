@@ -1,0 +1,33 @@
+<form id="cityForm">
+    <div class="form-group">
+        <label for="name">Название города:</label>
+        <input type="text" id="name" name="name" required>
+    </div>
+    <button type="submit">Добавить</button>
+</form>
+
+<div id="cityMessage"></div>
+
+<script>
+    document.getElementById('cityForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const formData = {
+            name: document.getElementById('name').value
+        };
+
+        try {
+            const response = await fetch('/api/city', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+            alert(data.message || 'Город успешно добавлен');
+            location.reload();
+        } catch (error) {
+            document.getElementById('cityMessage').innerText = 'Ошибка при добавлении города';
+        }
+    });
+</script>

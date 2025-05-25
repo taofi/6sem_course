@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление маршрутами</title>
+    <script>
+        const apiUrl = '/api/route';
+
+        // Получение списка маршрутов
+        async function fetchRoutes() {
+            const response = await fetch(apiUrl);
+            const routes = await response.json();
+            displayRoutes(routes);
+        }
+
+        // Отображение маршрутов в таблице
+       // Отображение маршрутов в таблице
+function displayRoutes(routes) {
+    const tableBody = document.getElementById('routesTableBody');
+    tableBody.innerHTML = ''; 
+    routes.forEach(route => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${route.route_id}</td>
+            <td>${route.start_city_id}</td>
+            <td>${route.finish_city_id}</td>
+            <td>${formatTravelTime(route.travel_time)}</td>
+            <td>
+                <button onclick="updateRoute(${route.route_id})">Обновить</button>
+                <button onclick="deleteRoute(${route.route_id})">Удалить</button>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+// Преобразование travel_time в строку
+function formatTravelTime(time) {
+    if (typeof time === 'string') return time; // Если уже строка, просто возвращаем
+    if (typeof time === 'object' && time !== null) {
+        return `${time.days || 0}д ${time.hours || 0}ч ${time.minutes || 0}м ${time.seconds || 0}с`;
+    }
+    return 'Не указано';
+}
+
+        // Создание маршрута (POST)
+        async function createRoute(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {
+                start_city_id: parseInt(formData.get('start_city_id'), 10),
+                finish_city_id: parseInt(formData.get('finish_city_id'), 10),
+                travel_time: formData.get('travel_time').trim()
+            };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message || 'Маршрут добавлен!');
+                await fetchRoutes();
+                event.target.reset();
+            } else {
+                alert(result.error || 'Ошибка при добавлении маршрута.');
+            }
+        }
+
+        // Обновление маршрута (PUT)
+        async function updateRoute(routeId) {
+            const newStartCityId = prompt("Введите новый ID начального города:");
+            const newFinishCityId = prompt("Введите новый ID конечного города:");
+            const newTravelTime = prompt("Введите новое время в пути (пример: '1д 2ч 30м 45с'):");
+
+            if (!newStartCityId || !newFinishCityId || !newTravelTime) {
+                alert("Все поля должны быть заполнены!");
+                return;
+            }
+
+            const data = {
+                route_id: routeId,
+                start_city_id: parseInt(newStartCityId, 10),
+                finish_city_id: parseInt(newFinishCityId, 10),
+                travel_time: newTravelTime.trim()
+            };
+
+            const response = await fetch(`${apiUrl}/${routeId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message || 'Маршрут обновлен!');
+                await fetchRoutes();
+            } else {
+                alert(result.error || 'Ошибка при обновлении маршрута.');
+            }
+        }
+
+        // Удаление маршрута (DELETE)
+        async function deleteRoute(routeId) {
+            const confirmDelete = confirm("Вы уверены, что хотите удалить этот маршрут?");
+            if (confirmDelete) {
+                const response = await fetch(`${apiUrl}/${routeId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message || 'Маршрут удален!');
+                    await fetchRoutes();
+                } else {
+                    alert(result.error || 'Ошибка при удалении маршрута.');
+                }
+            }
+        }
+
+        // Обновление данных
+        function refreshData() {
+            fetchRoutes();
+        }
+
+        window.onload = fetchRoutes;
+    </script>
+</head>
+<body>
+    <h1>Управление маршрутами</h1>
+
+    <form id="routeForm" onsubmit="createRoute(event)">
+        <label for="start_city_id">Начальный город ID:</label>
+        <input type="number" name="start_city_id" required>
+
+        <label for="finish_city_id">Конечный город ID:</label>
+        <input type="number" name="finish_city_id" required>
+
+        <label for="travel_time">Время в пути (пример: 1д 2ч 30м 45с):</label>
+        <input type="text" name="travel_time" required>
+
+        <button type="submit">Добавить маршрут</button>
+    </form>
+
+    <h2>Список маршрутов</h2>
+    <button onclick="refreshData()">Обновить данные</button>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Начальный город</th>
+                <th>Конечный город</th>
+                <th>Время в пути</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody id="routesTableBody">
+            <!-- Данные вставляются здесь -->
+        </tbody>
+    </table>
+</body>
+</html>

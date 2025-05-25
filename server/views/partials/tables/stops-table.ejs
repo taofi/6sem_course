@@ -1,0 +1,62 @@
+<section class="stops-table-section">
+  <div class="container">
+    <h2>Список остановок</h2>
+
+    <% if (stops && stops.length > 0) { %>
+      <table class="stops-table">
+        <thead>
+          <tr>
+            <th>ID остановки</th>
+            <th>Город</th>
+            <th>Название</th>
+            <th>Адрес</th>
+            <th>Время</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% stops.forEach(stop => { %>
+            <tr data-id="<%= stop.stop_id %>">
+              <td><%= stop.stop_id %></td>
+              <td><%= stop.city_name %></td>
+              <td><%= stop.name %></td>
+              <td><%= stop.address %></td>
+              <td><%= stop.time %></td>
+              <td><button class="delete-stop-btn">Удалить</button></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p>Остановки не найдены.</p>
+    <% } %>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.delete-stop-btn').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const row = e.target.closest('tr');
+        const stopId = row.dataset.id;
+
+        const confirmed = confirm('Удалить остановку?');
+        if (!confirmed) return;
+
+        const res = await fetch('/api/stops', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ id: stopId })
+        });
+
+        if (res.ok) {
+          row.remove();
+        } else {
+          alert('Ошибка при удалении остановки');
+        }
+      });
+    });
+  });
+</script>

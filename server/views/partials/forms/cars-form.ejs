@@ -1,0 +1,49 @@
+<form id="carForm">
+
+    <div class="form-group">
+
+        <label for="car_number">Номер машины:</label>
+        <input type="text" id="car_number" name="car_number" required>
+    </div>
+    <div class="form-group">
+
+        <label for="car_brand">Марка машины:</label>
+        <input type="text" id="car_brand" name="car_brand" required>
+    </div>
+    <div class="form-group">
+
+        <label for="capacity">Вместимость:</label>
+        <input type="number" id="capacity" name="capacity" min="1" required>
+    </div>
+    <button type="submit">Добавить</button>
+</form>
+
+<div id="responseMessage"></div>
+
+<script>
+document.getElementById('carForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const formData = {
+        car_number: document.getElementById('car_number').value,
+        car_brand: document.getElementById('car_brand').value,
+        capacity: document.getElementById('capacity').value
+    };
+
+    try {
+        const response = await fetch('/api/cars', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+        alert(data.message || 'Машина успешно добавлен');
+        location.reload()
+    } catch (error) {
+        document.getElementById('responseMessage').innerText = 'Ошибка при добавлении ' + error;
+    }
+});
+</script>

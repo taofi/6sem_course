@@ -1,0 +1,62 @@
+<section class="tickets-table-section">
+  <div class="container">
+    <h2>Список билетов</h2>
+
+    <% if (tickets && tickets.length > 0) { %>
+      <table class="tickets-table">
+        <thead>
+          <tr>
+            <th>ID билета</th>
+            <th>Пользователь</th>
+            <th>Рейс</th>
+            <th>Остановка</th>
+            <th>Количество мест</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% tickets.forEach(ticket => { %>
+            <tr data-id="<%= ticket.ticket_id %>">
+              <td><%= ticket.ticket_id %></td>
+              <td><%= ticket.user_name %></td>
+              <td><%= ticket.flight_id %></td>
+              <td><%= ticket.stop_name %></td>
+              <td><%= ticket.count %></td>
+              <td><button class="delete-ticket-btn">Удалить</button></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p>Билеты не найдены.</p>
+    <% } %>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.delete-ticket-btn').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const row = e.target.closest('tr');
+        const ticketId = row.dataset.id;
+
+        const confirmed = confirm('Удалить билет?');
+        if (!confirmed) return;
+
+        const res = await fetch('/api/tickets', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ id: ticketId })
+        });
+
+        if (res.ok) {
+          row.remove();
+        } else {
+          alert('Ошибка при удалении билета');
+        }
+      });
+    });
+  });
+</script>

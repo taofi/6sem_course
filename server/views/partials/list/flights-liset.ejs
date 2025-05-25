@@ -1,0 +1,17 @@
+<section>
+    <% if (flights.length === 0) { %>
+        <p>Нет доступных рейсов.</p>
+      <% } else { %>
+        <ul>
+          <% flights.forEach(function(flight) { %>
+            <li>
+              <strong>Маршрут:</strong> <%= flight.start_city %> → <%= flight.finish_city %><br>
+              <strong>Время отправления:</strong> <%= new Date(flight.start_time).toLocaleString() %><br>
+              <strong>Время в пути:</strong> <%= flight.travel_time %><br>
+              <strong>Цена:</strong> <%= flight.price %>₽<br>
+              <strong>Свободных мест:</strong> <%= flight.car_capacity %>
+            </li>
+          <% }); %>
+        </ul>
+      <% } %>    
+</section>

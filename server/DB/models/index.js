@@ -1,0 +1,27 @@
+const { Sequelize } = require('sequelize');
+const sequelize = require('../../config/database');
+const setupAssociations = require('./associations');
+
+const City = require('./City');
+const Route = require('./Route');
+const Driver = require('./Driver');
+const Cars = require('./Cars');
+const Flight = require('./Flight');
+const Stops = require('./Stops');
+const Users = require('./Users');
+const Tickets = require('./Tickets');
+
+// Инициализация связей
+setupAssociations();
+
+module.exports = {
+  sequelize,
+  City,
+  Route,
+  Driver,
+  Cars,
+  Flight,
+  Stops,
+  Users,
+  Tickets
+};

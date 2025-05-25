@@ -1,0 +1,60 @@
+<section class="routes-table-section">
+  <div class="container">
+    <h2>Список маршрутов</h2>
+
+    <% if (routes && routes.length > 0) { %>
+      <table class="routes-table">
+        <thead>
+          <tr>
+            <th>ID маршрута</th>
+            <th>Город отправления</th>
+            <th>Город прибытия</th>
+            <th>Время в пути</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% routes.forEach(route => { %>
+            <tr data-id="<%= route.route_id %>">
+              <td><%= route.route_id %></td>
+              <td><%= route.start_city_name %></td>
+              <td><%= route.finish_city_name %></td>
+              <td><%= route.travel_time %></td>
+              <td><button class="delete-route-btn">Удалить</button></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p>Маршруты не найдены.</p>
+    <% } %>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.delete-route-btn').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const row = e.target.closest('tr');
+        const routeId = row.dataset.id;
+
+        const confirmed = confirm('Удалить маршрут?');
+        if (!confirmed) return;
+
+        const res = await fetch('/api/routes', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ id: routeId })
+        });
+
+        if (res.ok) {
+          row.remove();
+        } else {
+          alert('Ошибка при удалении маршрута');
+        }
+      });
+    });
+  });
+</script>

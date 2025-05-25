@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stops API</title>
+    <script>
+        const apiUrl = '/api/stops';
+
+        // Получение списка остановок
+        async function fetchStops() {
+            const response = await fetch(apiUrl);
+            const stops = await response.json();
+            displayStops(stops);
+        }
+        function formatTime(time) {
+            if (typeof time === "string") {
+                return time; // Если уже строка, возвращаем как есть
+            }
+            return `${time.hours.toString().padStart(2, '0')}:${time.minutes.toString().padStart(2, '0')}:${time.seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Отображение остановок в таблице
+        function displayStops(stops) {
+            const tableBody = document.getElementById('stopsTableBody');
+            tableBody.innerHTML = ''; 
+            stops.forEach(stop => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${stop.stop_id}</td>
+                    <td>${stop.city_id}</td>
+                    <td>${stop.name}</td>
+                    <td>${stop.address}</td>
+                    <td>${formatTime(stop.time)}</td>
+                    <td>
+                        <button onclick="updateStop(${stop.stop_id})">Update</button>
+                        <button onclick="deleteStop(${stop.stop_id})">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Создание остановки (POST)
+        async function createStop(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {
+                city_id: parseInt(formData.get('city_id'), 10),
+                name: formData.get('name'),
+                address: formData.get('address'),
+                time: formData.get('time')
+            };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message || 'Остановка добавлена!');
+                await fetchStops();
+                event.target.reset();
+            } else {
+                alert(result.error || 'Ошибка при добавлении остановки.');
+            }
+        }
+
+        // Обновление остановки (PUT)
+        async function updateStop(stopId) {
+            const newCityId = prompt("Введите новый ID города:");
+            const newName = prompt("Введите новое название:");
+            const newAddress = prompt("Введите новый адрес:");
+            const newTime = prompt("Введите время в формате HH:MM:SS:");
+
+            const data = {
+                stop_id: stopId,
+                city_id: parseInt(newCityId, 10),
+                name: newName,
+                address: newAddress,
+                time: newTime
+            };
+
+            const response = await fetch(`${apiUrl}/${stopId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message || 'Остановка обновлена!');
+                await fetchStops();
+            } else {
+                alert(result.error || 'Ошибка при обновлении остановки.');
+            }
+        }
+
+        // Удаление остановки (DELETE)
+        async function deleteStop(stopId) {
+            const confirmDelete = confirm("Вы уверены, что хотите удалить эту остановку?");
+            if (confirmDelete) {
+                const response = await fetch(`${apiUrl}/${stopId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message || 'Остановка удалена!');
+                    await fetchStops();
+                } else {
+                    alert(result.error || 'Ошибка при удалении остановки.');
+                }
+            }
+        }
+
+        // Обновление данных
+        function refreshData() {
+            fetchStops();
+        }
+
+        window.onload = fetchStops;
+    </script>
+</head>
+<body>
+    <h1>Управление остановками</h1>
+    <form id="stopForm" onsubmit="createStop(event)">
+        <label for="city_id">Город ID:</label>
+        <input type="number" name="city_id" required>
+        <label for="name">Название:</label>
+        <input type="text" name="name" required>
+        <label for="address">Адрес:</label>
+        <input type="text" name="address" required>
+        <label for="time">Время (HH:MM:SS):</label>
+        <input type="text" name="time" pattern="\\d{2}:\\d{2}:\\d{2}" required>
+        <button type="submit">Добавить остановку</button>
+    </form>
+    <h2>Список остановок</h2>
+    <button onclick="refreshData()">Обновить данные</button>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Город</th>
+                <th>Название</th>
+                <th>Адрес</th>
+                <th>Время</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody id="stopsTableBody">
+            <!-- Данные вставляются здесь -->
+        </tbody>
+    </table>
+</body>
+</html>

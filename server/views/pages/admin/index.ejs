@@ -1,0 +1,21 @@
+<section class="main-content">
+    <div class="container">
+      <h2 style="margin-bottom: 20px;">Панель администратора</h2>
+  
+      <div style="background: #f5f5f5; border: 1px solid #ccc; padding: 20px; border-radius: 4px; margin-bottom: 30px;">
+        <p><strong>Имя:</strong> <%= admin.name %></p>
+        <p><strong>Телефон:</strong> <%= admin.user_number %></p>
+      </div>
+  
+      <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+        <a href="/admin/flight"><button>Рейсы</button></a>
+        <a href="/admin/city"><button>Города</button></a>
+        <a href="/admin/cars"><button>Автомобили</button></a>
+        <a href="/admin/driver"><button>Водители</button></a>
+        <a href="/admin/route"><button>Маршруты</button></a>
+        <a href="/admin/stops"><button>Остановки</button></a>
+        <a href="/admin/user"><button>Пользователи</button></a>
+      </div>
+    </div>
+  </section>
+  

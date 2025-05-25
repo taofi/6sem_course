@@ -1,0 +1,10 @@
+<div class="form-group">
+    <label for="driver_id">Водитель:</label>
+    <select id="driver_id" name="driver_id" required>
+      <option value="" disabled selected>Выберите водителя</option>
+      <% drivers.forEach(driver => { %>
+        <option value="<%= driver.driver_id %>"><%= driver.name %> <%= driver.last_name %> <%= driver.phone_number %> </option>
+      <% }) %>
+    </select>
+  </div>
+  

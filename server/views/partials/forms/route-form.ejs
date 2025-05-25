@@ -1,0 +1,38 @@
+<form id="routeForm" >
+    <%- include('../select_part/city_select_start_finish', { cities }) %>
+  
+    <div class="form-group">
+      <label for="travel_time">Время в пути (формат HH:MM:SS):</label>
+      <input type="text" id="travel_time" name="travel_time" required pattern="\\d{2}:\\d{2}:\\d{2}">
+    </div>
+  
+    <button type="submit">Добавить</button>
+</form>
+  
+<div id="routeMessage"></div>
+
+<script>
+document.getElementById('routeForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  const formData = {
+    start_city_id: document.getElementById('start_city_id').value,
+    finish_city_id: document.getElementById('finish_city_id').value,
+    travel_time: document.getElementById('travel_time').value,
+  };
+
+  try {
+    const response = await fetch('/api/route', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    });
+
+    const data = await response.json();
+    alert(data.message || 'Маршрут успешно добавлен');
+    location.reload()
+  } catch (error) {
+    document.getElementById('routeMessage').innerText = 'Ошибка при добавлении маршрута ' + error;
+  }
+});
+</script>

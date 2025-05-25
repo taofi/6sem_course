@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flights API</title>
+    <script>
+        const apiUrl = '/api/flight';
+
+        // Получение списка рейсов
+        async function fetchFlights() {
+            const response = await fetch(apiUrl);
+            const flights = await response.json();
+            displayFlights(flights);
+        }
+
+        // Отображение рейсов в таблице
+        function displayFlights(flights) {
+            const tableBody = document.getElementById('flightsTableBody');
+            tableBody.innerHTML = ''; 
+            flights.forEach(flight => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${flight.flight_id}</td>
+                    <td>${flight.route_id}</td>
+                    <td>${flight.driver_id}</td>
+                    <td>${flight.car_id}</td>
+                    <td>${flight.price}</td>
+                    <td>${new Date(flight.start_time).toLocaleString()}</td>
+                    <td>
+                        <button onclick="updateFlight(${flight.flight_id})">Update</button>
+                        <button onclick="deleteFlight(${flight.flight_id})">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Создание рейса (POST)
+        async function createFlight(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {
+                route_id: parseInt(formData.get('route_id'), 10),
+                driver_id: parseInt(formData.get('driver_id'), 10),
+                car_id: parseInt(formData.get('car_id'), 10),
+                price: formData.get('price'),
+                start_time: formData.get('start_time')
+            };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message || 'Рейс добавлен!');
+                await fetchFlights();
+                event.target.reset();
+            } else {
+                alert(result.error || 'Ошибка при добавлении рейса.');
+            }
+        }
+
+        // Обновление рейса (PUT)
+        async function updateFlight(flightId) {
+            const newRouteId = prompt("Введите новый маршрут ID:");
+            const newDriverId = prompt("Введите новый водитель ID:");
+            const newCarId = prompt("Введите новый автомобиль ID:");
+            const newPrice = prompt("Введите новую цену:");
+            const newStartTime = prompt("Введите новое время отправления (YYYY-MM-DD HH:MM:SS):");
+
+            const data = {
+                flight_id: flightId,
+                route_id: parseInt(newRouteId, 10),
+                driver_id: parseInt(newDriverId, 10),
+                car_id: parseInt(newCarId, 10),
+                price: newPrice,
+                start_time: newStartTime
+            };
+
+            const response = await fetch(`${apiUrl}/${flightId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message || 'Рейс обновлен!');
+                await fetchFlights();
+            } else {
+                alert(result.error || 'Ошибка при обновлении рейса.');
+            }
+        }
+
+        // Удаление рейса (DELETE)
+        async function deleteFlight(flightId) {
+            const confirmDelete = confirm("Вы уверены, что хотите удалить этот рейс?");
+            if (confirmDelete) {
+                const response = await fetch(`${apiUrl}/${flightId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message || 'Рейс удален!');
+                    await fetchFlights();
+                } else {
+                    alert(result.error || 'Ошибка при удалении рейса.');
+                }
+            }
+        }
+
+        // Обновление данных
+        function refreshData() {
+            fetchFlights();
+        }
+
+        window.onload = fetchFlights;
+    </script>
+</head>
+<body>
+    <h1>Управление рейсами</h1>
+    <form id="flightForm" onsubmit="createFlight(event)">
+        <label for="route_id">Маршрут ID:</label>
+        <input type="number" name="route_id" required>
+        <label for="driver_id">Водитель ID:</label>
+        <input type="number" name="driver_id" required>
+        <label for="car_id">Автомобиль ID:</label>
+        <input type="number" name="car_id" required>
+        <label for="price">Цена:</label>
+        <input type="text" name="price" required>
+        <label for="start_time">Время отправления:</label>
+        <input type="datetime-local" name="start_time" required>
+        <button type="submit">Добавить рейс</button>
+    </form>
+    <h2>Список рейсов</h2>
+    <button onclick="refreshData()">Обновить данные</button>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Маршрут ID</th>
+                <th>Водитель ID</th>
+                <th>Автомобиль ID</th>
+                <th>Цена</th>
+                <th>Время отправления</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody id="flightsTableBody">
+            <!-- Данные вставляются здесь -->
+        </tbody>
+    </table>
+</body>
+</html>

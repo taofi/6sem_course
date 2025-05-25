@@ -1,0 +1,71 @@
+drop table Tickets;
+drop table Stops;
+drop table Flight;
+drop table Route;
+drop table Cars;
+drop table Driver;
+
+drop table Users;
+
+drop table City;
+
+CREATE TABLE CITY (
+    City_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    Name VARCHAR2(100) NOT NULL
+);
+
+CREATE TABLE ROUTE (
+    Route_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    Start_city_id NUMBER REFERENCES City(City_id),
+    Finish_city_id NUMBER REFERENCES City(City_id),
+    Travel_time INTERVAL DAY TO SECOND NOT NULL
+);
+
+CREATE TABLE DRIVER (
+    Driver_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    Name VARCHAR2(50) NOT NULL,
+    Last_name VARCHAR2(50) NOT NULL,
+    Phone_Number VARCHAR2(20) UNIQUE NOT NULL
+);
+
+CREATE TABLE CARS (
+    Cars_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    Car_number VARCHAR2(20) UNIQUE NOT NULL,
+    Car_brand VARCHAR2(50) NOT NULL,
+    Capacity NUMBER NOT NULL
+);
+
+CREATE TABLE FLIGHT (
+    Flight_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    Route_id NUMBER REFERENCES Route(Route_id),
+    Driver_id NUMBER REFERENCES Driver(Driver_id),
+    Car_id NUMBER REFERENCES Cars(Cars_id),
+    Price NUMBER(10,2) NOT NULL,
+    Start_time TIMESTAMP NOT NULL
+);
+
+CREATE TABLE STOPS (
+    Stop_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    City_id NUMBER REFERENCES City(City_id),
+    Time INTERVAL DAY TO SECOND NOT NULL,
+    Name VARCHAR2(100) NOT NULL,
+    Address VARCHAR2(200) NOT NULL
+);
+
+CREATE TABLE USERS (
+    User_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    Login VARCHAR2(50) UNIQUE NOT NULL,
+    Pass VARCHAR2(100) NOT NULL,
+    Role VARCHAR2(50) NOT NULL,
+    Name VARCHAR2(50) NOT NULL,
+    Last_name VARCHAR2(50) NOT NULL,
+    User_Number VARCHAR2(20) UNIQUE NOT NULL
+);
+
+CREATE TABLE TICKETS (
+    Ticket_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    User_id NUMBER REFERENCES Users(User_id),
+    Flight_id NUMBER REFERENCES Flight(Flight_id),
+    Stop_id NUMBER REFERENCES Stops(Stop_id),
+    Count NUMBER NOT NULL CHECK (Count > 0)
+);

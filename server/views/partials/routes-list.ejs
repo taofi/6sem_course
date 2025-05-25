@@ -1,0 +1,20 @@
+<section class="routes-section">
+    <div class="container">
+      <h2>Доступные маршруты</h2>
+      <% if (routes && routes.length > 0) { %>
+        <ul class="routes-list">
+          <% routes.forEach(route => { %>
+            <li class="route-card">
+              <strong>ID:</strong> <%= route.route_id %><br>
+              <strong>Из города:</strong> <%= route.startCity %><br>
+              <strong>В город:</strong> <%= route.finishCity %><br>
+              <strong>Время в пути:</strong> <%= route.time %>
+            </li>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <p>Нет доступных маршрутов.</p>
+      <% } %>
+    </div>
+  </section>
+  

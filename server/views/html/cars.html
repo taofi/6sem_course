@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cars API</title>
+    <script>
+        const apiUrl = '/api/cars';
+
+        // Функция для получения списка автомобилей
+        async function fetchCars() {
+            const response = await fetch(apiUrl);
+            const cars = await response.json();
+            displayCars(cars);
+        }
+
+        // Функция для отображения автомобилей в таблице
+        function displayCars(cars) {
+            const tableBody = document.getElementById('carsTableBody');
+            tableBody.innerHTML = ''; // Очистить текущие данные
+            cars.forEach(car => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${car.car_id}</td>
+                    <td>${car.car_number}</td>
+                    <td>${car.car_brand}</td>
+                    <td>${car.capacity}</td>
+                    <td>
+                        <button onclick="updateCar(${car.car_id})">Update</button>
+                        <button onclick="deleteCar(${car.car_id})">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Функция для отправки POST запроса
+        async function createCar(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {
+                car_number: formData.get('car_number'),
+                car_brand: formData.get('car_brand'),
+                capacity: parseInt(formData.get('capacity'), 10)
+            };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json(); // Получаем ответ от сервера
+
+            if (response.ok) {
+                alert(result.message || 'Автомобиль добавлен!'); // Выводим сообщение об успехе
+                await fetchCars(); // Обновляем таблицу
+                event.target.reset(); // Сброс формы
+            } else {
+                alert(result.error || 'Ошибка при добавлении автомобиля.'); // Выводим сообщение об ошибке
+            }
+        }
+
+        // Функция для отправки PUT запроса
+        async function updateCar(carId) {
+            const carNumber = prompt("Введите новый номер машины:");
+            const carBrand = prompt("Введите новую марку машины:");
+            const capacity = prompt("Введите новую вместимость:");
+
+            const data = {
+                car_id: carId,
+                car_number: carNumber,
+                car_brand: carBrand,
+                capacity: parseInt(capacity, 10)
+            };
+
+            const response = await fetch(`${apiUrl}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json(); // Получаем ответ от сервера
+
+            if (response.ok) {
+                alert(result.message || 'Автомобиль обновлен!'); // Выводим сообщение об успехе
+                await fetchCars(); // Обновляем таблицу
+            } else {
+                alert(result.error || 'Ошибка при обновлении автомобиля.'); // Выводим сообщение об ошибке
+            }
+        }
+
+        // Функция для отправки DELETE запроса
+        async function deleteCar(carId) {
+            const confirmDelete = confirm("Вы уверены, что хотите удалить этот автомобиль?");
+            if (confirmDelete) {
+                const response = await fetch(`${apiUrl}/${carId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json(); // Получаем ответ от сервера
+
+                if (response.ok) {
+                    alert(result.message || 'Автомобиль удален!'); // Выводим сообщение об успехе
+                    await fetchCars(); // Обновляем таблицу
+                } else {
+                    alert(result.error || 'Ошибка при удалении автомобиля.'); // Выводим сообщение об ошибке
+                }
+            }
+        }
+
+        // Функция для обновления данных в таблице
+        function refreshData() {
+            fetchCars(); // Повторно загружаем данные
+        }
+
+        // Получаем данные при загрузке страницы
+        window.onload = fetchCars;
+    </script>
+</head>
+<body>
+    <h1>Управление автомобилями</h1>
+    <form id="carForm" onsubmit="createCar(event)">
+        <label for="car_number">Номер машины:</label>
+        <input type="text" name="car_number" required>
+        <label for="car_brand">Марка машины:</label>
+        <input type="text" name="car_brand" required>
+        <label for="capacity">Вместимость:</label>
+        <input type="number" name="capacity" required min="1">
+        <button type="submit">Добавить автомобиль</button>
+    </form>
+    <h2>Список автомобилей</h2>
+    <button onclick="refreshData()">Обновить данные</button> <!-- Кнопка для обновления данных -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Номер машины</th>
+                <th>Марка машины</th>
+                <th>Вместимость</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody id="carsTableBody">
+            <!-- Данные будут динамически вставлены здесь -->
+        </tbody>
+    </table>
+</body>
+</html>

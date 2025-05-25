@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cities API</title>
+    <script>
+        const apiUrl = '/api/city';
+
+        // Функция для получения списка городов
+        async function fetchCities() {
+            const response = await fetch(apiUrl);
+            const cities = await response.json();
+            displayCities(cities);
+        }
+
+        // Функция для отображения городов в таблице
+        function displayCities(cities) {
+            const tableBody = document.getElementById('citiesTableBody');
+            tableBody.innerHTML = ''; // Очистить текущие данные
+            cities.forEach(city => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${city.city_id}</td>
+                    <td>${city.name}</td>
+                    <td>
+                        <button onclick="updateCity(${city.city_id})">Update</button>
+                        <button onclick="deleteCity(${city.city_id})">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Функция для отправки POST запроса
+        async function createCity(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {
+                name: formData.get('name'),
+                city_id: parseInt(formData.get('city_id'), 10)
+            };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json(); // Получаем ответ от сервера
+
+            if (response.ok) {
+                alert(result.message || 'Город добавлен!'); // Выводим сообщение об успехе
+                await fetchCities(); // Обновляем таблицу
+                event.target.reset(); // Сброс формы
+            } else {
+                alert(result.error || 'Ошибка при добавлении города.'); // Выводим сообщение об ошибке
+            }
+        }
+
+        // Функция для отправки PUT запроса
+        async function updateCity(cityId) {
+            const newName = prompt("Введите новое имя города:");
+
+            const data = {
+                city_id: cityId,
+                name: newName
+            };
+
+            const response = await fetch(`${apiUrl}/${cityId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json(); // Получаем ответ от сервера
+
+            if (response.ok) {
+                alert(result.message || 'Город обновлен!'); // Выводим сообщение об успехе
+                await fetchCities(); // Обновляем таблицу
+            } else {
+                alert(result.error || 'Ошибка при обновлении города.'); // Выводим сообщение об ошибке
+            }
+        }
+
+        // Функция для отправки DELETE запроса
+        async function deleteCity(cityId) {
+            const confirmDelete = confirm("Вы уверены, что хотите удалить этот город?");
+            if (confirmDelete) {
+                const response = await fetch(`${apiUrl}/${cityId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json(); // Получаем ответ от сервера
+
+                if (response.ok) {
+                    alert(result.message || 'Город удален!'); // Выводим сообщение об успехе
+                    await fetchCities(); // Обновляем таблицу
+                } else {
+                    alert(result.error || 'Ошибка при удалении города.'); // Выводим сообщение об ошибке
+                }
+            }
+        }
+
+        // Функция для обновления данных в таблице
+        function refreshData() {
+            fetchCities(); // Повторно загружаем данные
+        }
+
+        // Получаем данные при загрузке страницы
+        window.onload = fetchCities;
+    </script>
+</head>
+<body>
+    <h1>Управление городами</h1>
+    <form id="cityForm" onsubmit="createCity(event)">
+        <label for="name">Название города:</label>
+        <input type="text" name="name" required>
+        <button type="submit">Добавить город</button>
+    </form>
+    <h2>Список городов</h2>
+    <button onclick="refreshData()">Обновить данные</button> <!-- Кнопка для обновления данных -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Название города</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody id="citiesTableBody">
+            <!-- Данные будут динамически вставлены здесь -->
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<section class="drivers-table-section">
+  <div class="container">
+    <h2>Список водителей</h2>
+
+    <% if (drivers && drivers.length > 0) { %>
+      <table class="drivers-table">
+        <thead>
+          <tr>
+            <th>ID водителя</th>
+            <th>Имя</th>
+            <th>Фамилия</th>
+            <th>Телефон</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% drivers.forEach(driver => { %>
+            <tr data-id="<%= driver.driver_id %>">
+              <td><%= driver.driver_id %></td>
+              <td><input type="text" value="<%= driver.name %>" disabled></td>
+              <td><input type="text" value="<%= driver.last_name %>" disabled></td>
+              <td><input type="text" value="<%= driver.phone_number %>" disabled></td>
+              <td>
+                <button class="edit-btn">Изменить</button>
+                <button class="save-btn" style="display:none;">Сохранить</button>
+                <button class="cancel-btn" style="display:none;">Отмена</button>
+                <button class="delete-driver-btn">Удалить</button>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p>Водители не найдены.</p>
+    <% } %>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Удаление
+    document.querySelectorAll('.delete-driver-btn').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const row = e.target.closest('tr');
+        const driverId = row.dataset.id;
+
+        if (!confirm('Удалить водителя?')) return;
+
+        const res = await fetch('/api/drivers', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: driverId })
+        });
+
+        if (res.ok) row.remove();
+        else alert('Ошибка при удалении');
+      });
+    });
+
+    // Редактирование
+    document.querySelectorAll('.edit-btn').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const row = e.target.closest('tr');
+        const inputs = row.querySelectorAll('input');
+        inputs.forEach(input => input.disabled = false);
+        row.dataset.oldValues = JSON.stringify(Array.from(inputs).map(i => i.value));
+
+        row.querySelector('.edit-btn').style.display = 'none';
+        row.querySelector('.save-btn').style.display = 'inline-block';
+        row.querySelector('.cancel-btn').style.display = 'inline-block';
+        row.querySelector('.delete-driver-btn').style.display = 'none';
+      });
+    });
+
+    // Отмена
+    document.querySelectorAll('.cancel-btn').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const row = e.target.closest('tr');
+        const inputs = row.querySelectorAll('input');
+        const oldValues = JSON.parse(row.dataset.oldValues);
+        inputs.forEach((input, i) => {
+          input.value = oldValues[i];
+          input.disabled = true;
+        });
+
+        row.querySelector('.edit-btn').style.display = 'inline-block';
+        row.querySelector('.save-btn').style.display = 'none';
+        row.querySelector('.cancel-btn').style.display = 'none';
+        row.querySelector('.delete-driver-btn').style.display = 'inline-block';
+      });
+    });
+
+    // Сохранение
+    document.querySelectorAll('.save-btn').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const row = e.target.closest('tr');
+        const driverId = row.dataset.id;
+        const [nameInput, lastNameInput, phoneInput] = row.querySelectorAll('input');
+
+        const data = {
+          driver_id: parseInt(driverId),
+          name: nameInput.value,
+          last_name: lastNameInput.value,
+          phone_number: phoneInput.value
+        };
+
+        const res = await fetch('/api/driver', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          nameInput.disabled = true;
+          lastNameInput.disabled = true;
+          phoneInput.disabled = true;
+
+          row.querySelector('.edit-btn').style.display = 'inline-block';
+          row.querySelector('.save-btn').style.display = 'none';
+          row.querySelector('.cancel-btn').style.display = 'none';
+          row.querySelector('.delete-driver-btn').style.display = 'inline-block';
+        } else {
+          const error = await res.json();
+          alert('Ошибка при сохранении: ' + (error.message || 'Неизвестная ошибка'));
+
+        }
+      });
+    });
+  });
+</script>

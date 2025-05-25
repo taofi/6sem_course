@@ -1,0 +1,69 @@
+<section class="flights-table-section">
+  <div class="container">
+    <h2>Список рейсов</h2>
+
+    <% if (flights && flights.length > 0) { %>
+      <table class="flights-table">
+        <thead>
+          <tr>
+            <th>ID рейса</th>
+            <th>Маршрут</th>
+            <th>Водитель</th>
+            <th>Телефон</th>
+            <th>Машина ID</th>
+            <th>Цена</th>
+            <th>Время отправления</th>
+            <th>Время в пути</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% flights.forEach(flight => { %>
+            <tr data-id="<%= flight.flight_id %>">
+              <td><%= flight.flight_id %></td>
+              <td><%= flight.start_city_name %> → <%= flight.finish_city_name %></td>
+              <td><%= flight.driver_name %> <%= flight.driver_last_name %></td>
+              <td><%= flight.driver_phone_number %></td>
+              <td><%= flight.car_id %></td>
+              <td><%= flight.price %> <%= currencySymbol %></td>
+              <td><%= new Date(flight.start_time).toLocaleString() %></td>
+              <td><%= flight.travel_time %></td>
+              <td><button class="delete-flight-btn">Удалить</button></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p>Рейсы не найдены.</p>
+    <% } %>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.delete-flight-btn').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const row = e.target.closest('tr');
+        const flightId = row.dataset.id;
+
+        const confirmed = confirm('Удалить рейс?');
+        if (!confirmed) return;
+
+        const res = await fetch('/api/flights', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ id: flightId })
+        });
+
+        if (res.ok) {
+          row.remove();
+        } else {
+          const error = await res.json();
+          alert('Ошибка при удалении: ' + (error.message || 'Неизвестная ошибка'));
+        }
+      });
+    });
+  });
+</script>

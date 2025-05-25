@@ -1,0 +1,112 @@
+<table border="1">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Название города</th>
+      <th>Действия</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% cities.forEach(function(city) { %>
+      <tr data-id="<%= city.city_id %>">
+        <td><%= city.city_id %></td>
+        <td>
+          <input type="text" value="<%= city.name %>" disabled>
+        </td>
+        <td>
+          <button class="edit-btn">Изменить</button>
+          <button class="save-btn" style="display:none;">Сохранить</button>
+          <button class="cancel-btn" style="display:none;">Отмена</button>
+          <button type="button" class="delete-button" data-city-id="<%= city.city_id %>">Удалить</button>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Удаление
+    document.querySelectorAll('.delete-button').forEach(button => {
+      button.addEventListener('click', function () {
+        const cityId = button.getAttribute('data-city-id');
+        if (!confirm(`Вы уверены, что хотите удалить город с ID ${cityId}?`)) return;
+
+        fetch('/api/city', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: cityId })
+        }).then(response => {
+          if (response.ok) {
+            window.location.href = '/admin/city';
+          } else {
+            
+            alert('Ошибка при удалении');
+          }
+        });
+      });
+    });
+
+    // Изменение
+    document.querySelectorAll('.edit-btn').forEach(button => {
+      button.addEventListener('click', function () {
+        const row = button.closest('tr');
+        const input = row.querySelector('input');
+        input.disabled = false;
+
+        row.dataset.oldValue = input.value;
+
+        row.querySelector('.edit-btn').style.display = 'none';
+        row.querySelector('.save-btn').style.display = 'inline-block';
+        row.querySelector('.cancel-btn').style.display = 'inline-block';
+        row.querySelector('.delete-button').style.display = 'none';
+      });
+    });
+
+    // Отмена
+    document.querySelectorAll('.cancel-btn').forEach(button => {
+      button.addEventListener('click', function () {
+        const row = button.closest('tr');
+        const input = row.querySelector('input');
+        input.value = row.dataset.oldValue;
+        input.disabled = true;
+
+        row.querySelector('.edit-btn').style.display = 'inline-block';
+        row.querySelector('.save-btn').style.display = 'none';
+        row.querySelector('.cancel-btn').style.display = 'none';
+        row.querySelector('.delete-button').style.display = 'inline-block';
+      });
+    });
+
+    // Сохранение
+    document.querySelectorAll('.save-btn').forEach(button => {
+      button.addEventListener('click', function () {
+        const row = button.closest('tr');
+        const cityId = row.dataset.id;
+        const input = row.querySelector('input');
+
+        const data = {
+          city_id: parseInt(cityId),
+          name: input.value
+        };
+
+        fetch('/api/city', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        }).then(response => {
+          if (response.ok) {
+            input.disabled = true;
+            row.querySelector('.edit-btn').style.display = 'inline-block';
+            row.querySelector('.save-btn').style.display = 'none';
+            row.querySelector('.cancel-btn').style.display = 'none';
+            row.querySelector('.delete-button').style.display = 'inline-block';
+          } else {
+            const error = response.json();
+            alert('Ошибка при сохранении: ' + (error.message || 'Неизвестная ошибка'));
+          }
+        });
+      });
+    });
+  });
+</script>

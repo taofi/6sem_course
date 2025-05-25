@@ -1,0 +1,127 @@
+<section class="cars-table-section">
+  <div class="container">
+    <h2>Список машин</h2>
+
+    <% if (cars && cars.length > 0) { %>
+      <table class="cars-table">
+        <thead>
+          <tr>
+            <th>ID машины</th>
+            <th>Номер</th>
+            <th>Марка</th>
+            <th>Вместимость</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% cars.forEach(car => { %>
+            <tr data-id="<%= car.car_id %>">
+              <td><%= car.car_id %></td>
+              <td><input type="text" value="<%= car.car_number %>" disabled></td>
+              <td><input type="text" value="<%= car.car_brand %>" disabled></td>
+              <td><input type="number" value="<%= car.capacity %>" disabled></td>
+              <td>
+                <button class="edit-btn">Изменить</button>
+                <button class="save-btn" style="display:none;">Сохранить</button>
+                <button class="cancel-btn" style="display:none;">Отмена</button>
+                <button class="delete-btn">Удалить</button>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p>Машины не найдены.</p>
+    <% } %>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.delete-btn').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const row = e.target.closest('tr');
+        const carId = row.dataset.id;
+
+        if (!confirm('Удалить машину?')) return;
+
+        const res = await fetch('/api/cars', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: carId })
+        });
+
+        if (res.ok) row.remove();
+        else alert('Ошибка при удалении');
+      });
+    });
+
+    document.querySelectorAll('.edit-btn').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const row = e.target.closest('tr');
+        const inputs = row.querySelectorAll('input');
+        inputs.forEach(input => input.disabled = false);
+
+        row.querySelector('.edit-btn').style.display = 'none';
+        row.querySelector('.delete-btn').style.display = 'none';
+        row.querySelector('.save-btn').style.display = 'inline-block';
+        row.querySelector('.cancel-btn').style.display = 'inline-block';
+
+        row.dataset.oldValues = JSON.stringify(Array.from(inputs).map(i => i.value));
+      });
+    });
+
+    document.querySelectorAll('.cancel-btn').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const row = e.target.closest('tr');
+        const inputs = row.querySelectorAll('input');
+        const oldValues = JSON.parse(row.dataset.oldValues);
+        inputs.forEach((input, i) => {
+          input.value = oldValues[i];
+          input.disabled = true;
+        });
+
+        row.querySelector('.edit-btn').style.display = 'inline-block';
+        row.querySelector('.delete-btn').style.display = 'inline-block';
+        row.querySelector('.save-btn').style.display = 'none';
+        row.querySelector('.cancel-btn').style.display = 'none';
+      });
+    });
+
+    document.querySelectorAll('.save-btn').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const row = e.target.closest('tr');
+        const carId = row.dataset.id;
+        const [numberInput, brandInput, capacityInput] = row.querySelectorAll('input');
+
+        const data = {
+          car_id: parseInt(carId),
+          car_number: numberInput.value,
+          car_brand: brandInput.value,
+          capacity: parseInt(capacityInput.value)
+        };
+
+        const res = await fetch('/api/cars', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          numberInput.disabled = true;
+          brandInput.disabled = true;
+          capacityInput.disabled = true;
+
+          row.querySelector('.edit-btn').style.display = 'inline-block';
+          row.querySelector('.delete-btn').style.display = 'inline-block';
+          row.querySelector('.save-btn').style.display = 'none';
+          row.querySelector('.cancel-btn').style.display = 'none';
+        } else {
+          const error = await res.json();
+          alert('Ошибка при сохранении: ' + (error.message || 'Неизвестная ошибка'));
+        }
+      });
+    });
+  });
+</script>
+
