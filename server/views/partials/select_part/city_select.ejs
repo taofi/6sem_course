@@ -1,11 +1,11 @@
 <div class="form-group">
-
     <label for="city_id">Город:</label>
     <select id="city_id" name="city_id" required>
-        <% cities.forEach(function(city) { %>
-            <option value="<%= city.city_id %>">
-                <%= city.name %>
-            </option>
-            <% }); %>
+      <% cities.forEach(function(city) { %>
+        <option value="<%= city.city_id %>" <%= (typeof selectedCityId !== 'undefined' && city.city_id === selectedCityId) ? 'selected' : '' %>>
+          <%= city.name %>
+        </option>
+      <% }); %>
     </select>
-</div>
+  </div>
+  

@@ -1,8 +1,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/database');
 const Route = require('./Route');
-const Driver = require('./Driver');
 const Cars = require('./Cars');
+const Users = require('./Users')
 
 const Flight = sequelize.define('Flight', {
   flight_id: {
@@ -22,8 +22,8 @@ const Flight = sequelize.define('Flight', {
   driver_id: {
     type: DataTypes.INTEGER,
     references: {
-      model: Driver,
-      key: 'driver_id',
+      model: Users,
+      key: 'user_id',
     },
     field: 'DRIVER_ID',
   },

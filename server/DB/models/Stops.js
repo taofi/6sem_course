@@ -35,6 +35,16 @@ const Stops = sequelize.define('Stops', {
     allowNull: false,
     field: 'ADDRESS',
   },
+  latitude: {
+    type: DataTypes.DECIMAL(10, 6),
+    allowNull: true,
+    field: 'LATITUDE',
+  },
+  longitude: {
+    type: DataTypes.DECIMAL(10, 6),
+    allowNull: true,
+    field: 'LONGITUDE',
+  },
 }, {
   tableName: 'STOPS',
   timestamps: false,

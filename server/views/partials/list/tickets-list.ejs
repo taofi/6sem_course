@@ -1,0 +1,63 @@
+<% if (error) { %>
+  <script>alert("Ошибка: <%= error %>");</script>
+  <% } %>
+
+    <% if (tickets.length===0) { %>
+      <p>У вас нет билетов.</p>
+      <% } else { %>
+        <ul class="ticket-list">
+          <% tickets.forEach(ticket=> { %>
+            <li class="ticket-item">
+              <h3>
+                <%= ticket.start_city %> → <%= ticket.finish_city %>
+              </h3>
+              <p>Остановка: <%= ticket.stop_name %>
+              </p>
+              <p>Время отправления: <%= ticket.start_time %>
+              </p>
+              <p>Время в пути: <%= ticket.travel_time %>
+              </p>
+              <p>Цена: <%= ticket.price %> ₽</p>
+              <p>Количество билетов: <%= ticket.count %>
+              </p>
+              <form action="/ticket/delete" method="delete" class="cancel-form">
+                <input type="hidden" name="ticket_id" value="<%= ticket.ticket_id %>">
+                <button type="submit" class="btn-cancel">Отменить</button>
+              </form>
+              <form style="margin: 10px 0px;" action="/ticket/edit/<%= ticket.ticket_id %>" method="get" style="display: inline;">
+                <button type="submit" class="btn-edit">Изменить</button>
+              </form>
+            </li>
+            <% }); %>
+        </ul>
+        <% } %>
+          <script>
+            document.querySelectorAll('.cancel-form').forEach(form => {
+              form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                if (!confirm("Вы точно хотите отменить поездку?")) return;
+
+                const ticketId = form.querySelector('input[name="ticket_id"]').value;
+
+                try {
+                  const res = await fetch('/ticket/delete', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ticket_id: ticketId }),
+                  });
+
+                  const result = await res.json();
+
+                  if (res.ok) {
+                    location.reload();
+                  } else {
+                    alert('Ошибка: ' + result.message);
+                  }
+                } catch {
+                  alert('Ошибка запроса');
+                }
+              });
+            });
+
+          </script>

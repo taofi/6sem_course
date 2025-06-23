@@ -1,49 +1,56 @@
-<table border="1">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Название города</th>
-      <th>Действия</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% cities.forEach(function(city) { %>
-      <tr data-id="<%= city.city_id %>">
-        <td><%= city.city_id %></td>
-        <td>
-          <input type="text" value="<%= city.name %>" disabled>
-        </td>
-        <td>
-          <button class="edit-btn">Изменить</button>
-          <button class="save-btn" style="display:none;">Сохранить</button>
-          <button class="cancel-btn" style="display:none;">Отмена</button>
-          <button type="button" class="delete-button" data-city-id="<%= city.city_id %>">Удалить</button>
-        </td>
-      </tr>
-    <% }) %>
-  </tbody>
-</table>
-
+<% if (cities && cities.length > 0) { %>
+  <div class="table-wrapper">
+    <table class="city-table" border="1">
+      <thead>
+        <tr>
+          <th data-sort="number">ID</th>
+          <th data-sort="text">Название города</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% cities.forEach(function(city) { %>
+          <tr data-id="<%= city.city_id %>">
+            <td><%= city.city_id %></td>
+            <td><input type="text" value="<%= city.name %>" disabled></td>
+            <td>
+              <button class="edit-btn">Изменить</button>
+              <button class="save-btn" style="display:none;">Сохранить</button>
+              <button class="cancel-btn" style="display:none;">Отмена</button>
+              <button type="button" class="delete-button" data-city-id="<%= city.city_id %>">Удалить</button>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } else { %>
+  <p>Города не найдены.</p>
+<% } %>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     // Удаление
     document.querySelectorAll('.delete-button').forEach(button => {
-      button.addEventListener('click', function () {
+      button.addEventListener('click', async function () {
         const cityId = button.getAttribute('data-city-id');
         if (!confirm(`Вы уверены, что хотите удалить город с ID ${cityId}?`)) return;
 
-        fetch('/api/city', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: cityId })
-        }).then(response => {
+        try {
+          const response = await fetch('/api/city', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: cityId })
+          });
+
           if (response.ok) {
             window.location.href = '/admin/city';
           } else {
-            
-            alert('Ошибка при удалении');
+            const error = await response.json();
+            alert('Ошибка при удалении: ' + (error.message || 'Неизвестная ошибка'));
           }
-        });
+        } catch {
+          alert('Ошибка сети при удалении');
+        }
       });
     });
 
@@ -80,7 +87,7 @@
 
     // Сохранение
     document.querySelectorAll('.save-btn').forEach(button => {
-      button.addEventListener('click', function () {
+      button.addEventListener('click', async function () {
         const row = button.closest('tr');
         const cityId = row.dataset.id;
         const input = row.querySelector('input');
@@ -90,11 +97,13 @@
           name: input.value
         };
 
-        fetch('/api/city', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        }).then(response => {
+        try {
+          const response = await fetch('/api/city', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+
           if (response.ok) {
             input.disabled = true;
             row.querySelector('.edit-btn').style.display = 'inline-block';
@@ -102,11 +111,16 @@
             row.querySelector('.cancel-btn').style.display = 'none';
             row.querySelector('.delete-button').style.display = 'inline-block';
           } else {
-            const error = response.json();
+            const error = await response.json();
             alert('Ошибка при сохранении: ' + (error.message || 'Неизвестная ошибка'));
           }
-        });
+        } catch {
+          alert('Ошибка сети при сохранении');
+        }
       });
     });
+
+    enableTableSorting('.city-table');
+    enableTableSearch('.city-table');
   });
 </script>

@@ -1,6 +1,5 @@
 const City = require('./City');
 const Route = require('./Route');
-const Driver = require('./Driver');
 const Cars = require('./Cars');
 const Flight = require('./Flight');
 const Stops = require('./Stops');
@@ -19,8 +18,9 @@ function setupAssociations() {
   Route.hasMany(Flight, { foreignKey: 'route_id', onDelete: 'CASCADE' });
 
   // Driver
-  Driver.hasMany(Flight, { foreignKey: 'driver_id' });
-  Flight.belongsTo(Driver, { foreignKey: 'driver_id' });
+  Users.hasMany(Flight, { foreignKey: 'driver_id' });
+  Flight.belongsTo(Users, { foreignKey: 'driver_id', targetKey: 'user_id' });
+
 
   // Cars
   Cars.hasMany(Flight, { foreignKey: 'car_id' });

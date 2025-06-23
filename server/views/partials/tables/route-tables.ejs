@@ -1,60 +1,156 @@
 <section class="routes-table-section">
   <div class="container">
     <h2>Список маршрутов</h2>
-
-    <% if (routes && routes.length > 0) { %>
-      <table class="routes-table">
-        <thead>
-          <tr>
-            <th>ID маршрута</th>
-            <th>Город отправления</th>
-            <th>Город прибытия</th>
-            <th>Время в пути</th>
-            <th>Действия</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% routes.forEach(route => { %>
-            <tr data-id="<%= route.route_id %>">
-              <td><%= route.route_id %></td>
-              <td><%= route.start_city_name %></td>
-              <td><%= route.finish_city_name %></td>
-              <td><%= route.travel_time %></td>
-              <td><button class="delete-route-btn">Удалить</button></td>
+    <div class="table-wrapper">
+      <% if (routes && routes.length> 0) { %>
+        <table class="routes-table">
+          <thead>
+            <tr>
+              <th data-sort="number">ID маршрута</th>
+              <th data-sort="text">Город отправления</th>
+              <th data-sort="text">Город прибытия</th>
+              <th data-sort="text">Время в пути</th>
+              <th>Действия</th>
             </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    <% } else { %>
-      <p>Маршруты не найдены.</p>
-    <% } %>
+          </thead>
+          <tbody>
+            <% routes.forEach(route=> { %>
+              <tr data-id="<%= route.route_id %>">
+                <td>
+                  <%= route.route_id %>
+                </td>
+                <td>
+                  <select name="start_city_id" disabled>
+                    <% cities.forEach(city=> { %>
+                      <option value="<%= city.city_id %>" <%=city.name===route.startCityName ? 'selected' : '' %>>
+                        <%= city.name %>
+                      </option>
+                      <% }); %>
+                  </select>
+                </td>
+                <td>
+                  <select name="finish_city_id" disabled>
+                    <% cities.forEach(city=> { %>
+                      <option value="<%= city.city_id %>" <%=city.name===route.finishCityName ? 'selected' : '' %>>
+                        <%= city.name %>
+                      </option>
+                      <% }); %>
+                  </select>
+                </td>
+                <td>
+                  <input type="time" step="1" name="travel_time" value="<%= route.travel_time %>" disabled>
+                </td>
+
+                <td>
+                  <button class="edit-route-btn">Изменить</button>
+                  <button class="save-route-btn" style="display:none;">Сохранить</button>
+                  <button class="cancel-route-btn" style="display:none;">Отмена</button>
+                  <button class="delete-route-btn">Удалить</button>
+                </td>
+              </tr>
+              <% }) %>
+          </tbody>
+        </table>
+        <% } else { %>
+          <p>Маршруты не найдены.</p>
+          <% } %>
+    </div>
   </div>
 </section>
-
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    // Удаление маршрута
     document.querySelectorAll('.delete-route-btn').forEach(button => {
       button.addEventListener('click', async (e) => {
         const row = e.target.closest('tr');
         const routeId = row.dataset.id;
+        if (!confirm('Удалить маршрут?')) return;
 
-        const confirmed = confirm('Удалить маршрут?');
-        if (!confirmed) return;
+        try {
+          const res = await fetch('/api/routes', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: routeId })
+          });
 
-        const res = await fetch('/api/routes', {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ id: routeId })
-        });
-
-        if (res.ok) {
-          row.remove();
-        } else {
-          alert('Ошибка при удалении маршрута');
+          if (res.ok) {
+            row.remove();
+          } else {
+            const errorData = await res.json();
+            alert('Ошибка при удалении маршрута: ' + (errorData.message || 'Неизвестная ошибка'));
+          }
+        } catch {
+          alert('Ошибка сети или сервера');
         }
       });
     });
+
+    // Редактирование маршрута
+    document.querySelectorAll('.edit-route-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const row = btn.closest('tr');
+        row.querySelectorAll('select, input').forEach(el => el.disabled = false);
+        row.dataset.oldValues = JSON.stringify(Array.from(row.querySelectorAll('select, input')).map(i => i.value));
+
+        row.querySelector('.save-route-btn').style.display = 'inline-block';
+        row.querySelector('.cancel-route-btn').style.display = 'inline-block';
+        btn.style.display = 'none';
+      });
+    });
+
+    // Отмена редактирования маршрута
+    document.querySelectorAll('.cancel-route-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const row = btn.closest('tr');
+        const oldValues = JSON.parse(row.dataset.oldValues);
+        row.querySelectorAll('select, input').forEach((el, i) => {
+          el.value = oldValues[i];
+          el.disabled = true;
+        });
+
+        row.querySelector('.save-route-btn').style.display = 'none';
+        row.querySelector('.cancel-route-btn').style.display = 'none';
+        row.querySelector('.edit-route-btn').style.display = 'inline-block';
+      });
+    });
+
+    // Сохранение маршрута
+    document.querySelectorAll('.save-route-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const row = btn.closest('tr');
+        const routeId = row.dataset.id;
+        const startCityId = row.querySelector('select[name="start_city_id"]').value;
+        const finishCityId = row.querySelector('select[name="finish_city_id"]').value;
+        const travelTime = row.querySelector('input[name="travel_time"]').value;
+
+        try {
+          const res = await fetch('/api/route', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              route_id: routeId,
+              start_city_id: startCityId,
+              finish_city_id: finishCityId,
+              travel_time: travelTime
+            })
+          });
+
+          if (res.ok) {
+            row.querySelectorAll('select, input').forEach(el => el.disabled = true);
+            row.querySelector('.save-route-btn').style.display = 'none';
+            row.querySelector('.cancel-route-btn').style.display = 'none';
+            row.querySelector('.edit-route-btn').style.display = 'inline-block';
+          } else {
+            const errorData = await res.json();
+            alert('Ошибка при сохранении маршрута: ' + (errorData.message || 'Неизвестная ошибка'));
+          }
+        } catch {
+          alert('Ошибка сети или сервера');
+        }
+      });
+    });
+
+    enableTableSorting('.routes-table');
+    enableTableSearch('.routes-table');
   });
 </script>

@@ -1,0 +1,21 @@
+<h1>Ваш билет оформлен</h1>
+
+<p><strong>Отправление:</strong>
+    <%= info.startCity %>
+</p>
+<p><strong>Прибытие:</strong>
+    <%= info.finishCity %>
+</p>
+<p><strong>Число мест:</strong>
+    <%= info.count %>
+</p>
+<p><strong>Цена:</strong>
+    <%= info.count * info.price %>
+</p>
+<p><strong>Время отправления:</strong>
+    <%= time %>
+</p>
+
+<form action="/profile" method="get">
+    <button type="submit">Перейти в профиль</button>
+</form>

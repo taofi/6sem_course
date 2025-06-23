@@ -5,12 +5,11 @@ const CarsDAO = require('./CarsDAO');
 const FlightDAO = require('./FlightDAO');
 const StopsDAO = require('./StopsDAO');
 const UsersDAO = require('./UsersDAO');
-const TicketsDAO = require('./TicketsDAo');
+const TicketsDAO = require('./TicketsDAO');
 
 module.exports = {
     CityDAO,
     RouteDAO,
-    DriverDAO,
     CarsDAO,
     FlightDAO,
     StopsDAO,

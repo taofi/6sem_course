@@ -4,7 +4,6 @@ const setupAssociations = require('./associations');
 
 const City = require('./City');
 const Route = require('./Route');
-const Driver = require('./Driver');
 const Cars = require('./Cars');
 const Flight = require('./Flight');
 const Stops = require('./Stops');
@@ -18,7 +17,6 @@ module.exports = {
   sequelize,
   City,
   Route,
-  Driver,
   Cars,
   Flight,
   Stops,

@@ -3,7 +3,7 @@
     <select id="driver_id" name="driver_id" required>
       <option value="" disabled selected>Выберите водителя</option>
       <% drivers.forEach(driver => { %>
-        <option value="<%= driver.driver_id %>"><%= driver.name %> <%= driver.last_name %> <%= driver.phone_number %> </option>
+        <option value="<%= driver.user_id %>"><%= driver.name %> <%= driver.last_name %> <%= driver.user_number %> </option>
       <% }) %>
     </select>
   </div>

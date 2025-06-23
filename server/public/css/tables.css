@@ -6,6 +6,12 @@ table {
     margin-top: 20px;
     font-family: Arial, sans-serif;
   }
+
+  .table-wrapper {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+  
   
   th, td {
     padding: 10px 15px;

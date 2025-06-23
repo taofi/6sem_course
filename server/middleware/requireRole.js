@@ -1,7 +1,7 @@
-function requireRole(role) {
+function requireRole(roles) {
   return (req, res, next) => {
     if (!req.user) return res.redirect('/');
-    if (req.user.role !== role) return res.redirect('/');
+    if (!roles.includes(req.user.role)) return res.redirect('/');
     next();
   };
 }

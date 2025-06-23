@@ -39,7 +39,13 @@ const Users = sequelize.define('Users', {
     allowNull: false,
     unique: true,
     field: 'USER_NUMBER',
-  }  
+  },
+  telegram_id: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    unique: true,
+    field: 'TELEGRAM_ID',
+  }
 }, {
   tableName: 'USERS',
   timestamps: false,

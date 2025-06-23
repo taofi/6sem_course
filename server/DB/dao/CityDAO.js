@@ -68,60 +68,61 @@ class CityDAO {
     }
   }
 
+  static async findCityIdByName(name) {
+    const city = await City.findOne({
+      where: {
+        name: name
+      },
+      attributes: ['id']
+    });
+    return city ? city.id : null;
+  }
   
   static async getRoutesFromCity(fromCity) {
     try {
-      const city = await City.findOne({
-        where: { name: fromCity },
-        attributes: ['city_id'],
-      });
+      const cityId = parseInt(fromCity);
   
-      if (!city) {
-        throw new Error(`Город с названием ${fromCity} не найден.`);
-      }
-  
-      // Все маршруты, где fromCity — начальный город
       const routesFrom = await Route.findAll({
-        where: { start_city_id: city.city_id },
+        where: { start_city_id: cityId },
         include: [
           {
             model: City,
             as: 'finishCity',
-            attributes: ['name'],
+            attributes: ['city_id', 'name'],
           },
         ],
         attributes: ['route_id', 'finish_city_id'],
       });
   
-      // Все маршруты, где fromCity — конечный город
       const routesTo = await Route.findAll({
-        where: { finish_city_id: city.city_id },
+        where: { finish_city_id: cityId },
         include: [
           {
             model: City,
             as: 'startCity',
-            attributes: ['name'],
+            attributes: ['city_id', 'name'],
           },
         ],
         attributes: ['route_id', 'start_city_id'],
       });
   
-      // Собираем уникальные города
       const uniqueCitiesMap = new Map();
   
       routesFrom.forEach(route => {
         if (route.finishCity) {
-          uniqueCitiesMap.set(route.finishCity.name, {
-            to: route.finishCity.name,
+          uniqueCitiesMap.set(route.finishCity.city_id, {
+            id: route.finishCity.city_id,
+            name: route.finishCity.name,
             routeId: route.route_id,
           });
         }
       });
   
       routesTo.forEach(route => {
-        if (route.startCity && !uniqueCitiesMap.has(route.startCity.name)) {
-          uniqueCitiesMap.set(route.startCity.name, {
-            to: route.startCity.name,
+        if (route.startCity && !uniqueCitiesMap.has(route.startCity.city_id)) {
+          uniqueCitiesMap.set(route.startCity.city_id, {
+            id: route.startCity.city_id,
+            name: route.startCity.name,
             routeId: route.route_id,
           });
         }
@@ -134,6 +135,7 @@ class CityDAO {
       throw new Error('Ошибка получения маршрутов');
     }
   }
+  
   
 }
 

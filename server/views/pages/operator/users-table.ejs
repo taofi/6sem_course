@@ -1,0 +1,134 @@
+<section class="users-table-section">
+  <div class="container">
+    <h2>Список пользователей</h2>
+
+    <% if (users && users.length > 0) { %>
+    <div class="table-wrapper">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th data-sort="number">ID</th>
+            <th data-sort="text">Имя</th>
+            <th data-sort="text">Фамилия</th>
+            <th>Телефон</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% users.forEach(user => { %>
+            <tr data-id="<%= user.user_id %>">
+              <td><%= user.user_id %></td>
+              <td><input type="text" value="<%= user.name %>" disabled></td>
+              <td><input type="text" value="<%= user.last_name %>" disabled></td>
+              <td><input type="text" value="<%= user.user_number %>" disabled></td>
+              <td>
+                <button class="edit-btn">Изменить</button>
+                <button class="save-btn" style="display:none;">Сохранить</button>
+                <button class="delete-btn">Удалить</button>
+                <a class="tickets-btn" href="/admin/user/<%= user.user_id %>/tickets">Билеты</a>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <% } else { %>
+      <p>Пользователи не найдены.</p>
+    <% } %>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Удаление пользователя
+    document.querySelectorAll('.delete-btn').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const row = e.target.closest('tr');
+        const userId = row.dataset.id;
+        if (!confirm(`Вы уверены, что хотите удалить пользователя с ID ${userId}?`)) return;
+
+        const res = await fetch('/api/users', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: userId })
+        });
+
+        if (res.ok) row.remove();
+        else alert('Ошибка при удалении');
+      });
+    });
+
+    // Редактирование пользователя
+    document.querySelectorAll('.edit-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+      const row = e.target.closest('tr');
+      const inputs = row.querySelectorAll('input');
+      inputs.forEach(input => input.disabled = false);
+
+      row.dataset.oldValues = JSON.stringify(Array.from(inputs).map(i => i.value));
+
+      row.querySelector('.edit-btn').style.display = 'none';
+      row.querySelector('.delete-btn').style.display = 'none';
+      row.querySelector('.save-btn').style.display = 'inline-block';
+
+      // Показываем кнопку отмены
+      let cancelBtn = row.querySelector('.cancel-btn');
+      if (cancelBtn) cancelBtn.style.display = 'inline-block';
+    });
+  });
+
+  document.querySelectorAll('.cancel-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+      const row = e.target.closest('tr');
+      const inputs = row.querySelectorAll('input');
+      const oldValues = JSON.parse(row.dataset.oldValues);
+      inputs.forEach((input, i) => {
+        input.value = oldValues[i];
+        input.disabled = true;
+      });
+
+      row.querySelector('.edit-btn').style.display = 'inline-block';
+      row.querySelector('.delete-btn').style.display = 'inline-block';
+      row.querySelector('.save-btn').style.display = 'none';
+      button.style.display = 'none';
+    });
+  });
+
+  document.querySelectorAll('.save-btn').forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const row = e.target.closest('tr');
+      const userId = row.dataset.id;
+      const [nameInput, lastNameInput, phoneInput] = row.querySelectorAll('input');
+
+      const data = {
+        user_id: parseInt(userId),
+        name: nameInput.value,
+        last_name: lastNameInput.value,
+        user_number: phoneInput.value
+      };
+
+      const res = await fetch('/api/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        [nameInput, lastNameInput, phoneInput].forEach(i => i.disabled = true);
+        row.querySelector('.edit-btn').style.display = 'inline-block';
+        row.querySelector('.delete-btn').style.display = 'inline-block';
+        row.querySelector('.save-btn').style.display = 'none';
+
+        const cancelBtn = row.querySelector('.cancel-btn');
+        if (cancelBtn) cancelBtn.style.display = 'none';
+      } else {
+        const error = await res.json();
+        alert('Ошибка при сохранении: ' + (error.message || 'Неизвестная ошибка'));
+      }
+    });
+  });
+
+    enableTableSorting('.users-table');
+    enableTableSearch('.users-table');
+  });
+</script>

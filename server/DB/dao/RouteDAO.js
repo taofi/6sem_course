@@ -7,27 +7,39 @@ class RouteDAO {
       throw new Error("Некорректные данные: объект routeData отсутствует.");
   }
 
+  
   const startCityId = Number(routeData.start_city_id);
   if (isNaN(startCityId)) {
-      throw new Error("start_city_id должно быть числом");
+    throw new Error("start_city_id должно быть числом");
   }
   routeData.start_city_id = startCityId;
+  
   const finishCityId = Number(routeData.finish_city_id);
   if (isNaN(finishCityId)) {
-      throw new Error("finish_city_id должно быть числом");
+    throw new Error("finish_city_id должно быть числом");
   }
   routeData.finish_city_id = finishCityId;
+  
+  if (routeData.start_city_id === routeData.finish_city_id) {
+    throw new Error("Город отправления и город прибытия не могут совпадать.");
+  }
+  
+
+  routeData.finish_city_id = finishCityId;
   if (typeof routeData.travel_time !== 'string') {
-      throw new Error("travel_time должно быть строкой.");
+    throw new Error("travel_time должно быть строкой.");
   }
 
-  // Регулярное выражение для формата 'D HH:MI:SS'
-  const intervalRegex = /^\d+\s\d{2}:\d{2}:\d{2}$/;
-  if (!intervalRegex.test(routeData.travel_time)) {
-      throw new Error("travel_time должно быть в формате 'D HH:MI:SS', например '2 12:30:45'");
+  if (!/^\d+\s\d{2}:\d{2}:\d{2}$/.test(routeData.travel_time)) {
+    if (/^\d{2}:\d{2}:\d{2}$/.test(routeData.travel_time)) {
+      routeData.travel_time = '0 ' + routeData.travel_time;
+    } else {
+      throw new Error("travel_time должно быть в формате 'D HH:MI:SS' или 'HH:MI:SS', например '2 12:30:45' или '12:30:45'");
+    }
   }
-    return routeData;
-  }
+
+  return routeData;
+}
   
   static formatTime(interval) {
     let timeString = '00:00:00';
@@ -170,6 +182,38 @@ class RouteDAO {
       throw new Error('Ошибка получения маршрутов');
     }
   }
+  static async GetFormatted() {
+    try {
+      const routes = await Route.findAll({
+        include: [
+          { model: City, as: 'startCity', attributes: ['city_id', 'name'] },
+          { model: City, as: 'finishCity', attributes: ['city_id', 'name'] },
+        ],
+        attributes: ['route_id', 'start_city_id', 'finish_city_id', 'travel_time'],
+        raw: true,
+      });
+  
+      return routes.map(route => {
+        // Форматируем время в 'D HH:MI:SS' (если travel_time - строка, возвращаем как есть)
+        const travelTime = route.travel_time;
+  
+        let formattedTime = RouteDAO.formatTime(travelTime);
+        
+        return {
+          route_id: route.route_id,
+          start_city_id: route.start_city_id,
+          finish_city_id: route.finish_city_id,
+          startCityName: route['startCity.name'],
+          finishCityName: route['finishCity.name'],
+          travel_time: formattedTime,
+        };
+      });
+    } catch (error) {
+      console.error('Error fetching formatted routes:', error);
+      throw error;
+    }
+  }
+  
 }
 
 module.exports = RouteDAO;

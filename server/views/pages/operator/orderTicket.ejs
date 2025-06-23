@@ -1,0 +1,76 @@
+<section class="ticket-order">
+  <h2>Оформление билета</h2>
+
+  <div class="flight-info">
+    <p><strong>Маршрут:</strong>
+      <%= flight.start_city_name %> → <%= flight.finish_city_name %>
+    </p>
+    <p><strong>Время отправления:</strong>
+      <%= new Date(flight.start_time).toLocaleString() %>
+    </p>
+    <p><strong>Цена:</strong>
+      <%= flight.price %>₽
+    </p>
+    <p><strong>Свободных мест:</strong> <%= flight.capacity %></p>
+
+  </div>
+
+  <form action="/admin/orderTicket/<%= flight.flight_id %>" method="POST" id="ticketForm">
+    <div class="form-group">
+      <label for="user_id">ID пользователя:</label>
+      <input type="number" name="user_id" id="user_id" min="1" required>
+    </div>
+
+    <div class="form-group">
+      <label for="count">Количество билетов:</label>
+      <input type="number" name="count" id="count" min="1" required>
+    </div>
+
+    <div class="form-group">
+      <h1>Выберите остановку для посадки</h1>
+      <%- include('../../partials/select_part/stops-select.ejs') %>
+    </div>
+    
+    <input type="hidden" name="stop_id" id="selectedStopId">
+    <button type="submit" class="btn">Оформить</button>
+  </form>
+</section>
+
+<script>
+  document.getElementById('ticketForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const user_id = form.user_id.value;
+    const count = form.count.value;
+    const stop_id = form.stop_id.value;
+
+    if (!user_id) {
+      alert('Пожалуйста, введите ID пользователя.');
+      return;
+    }
+
+    if (!stop_id) {
+      alert('Пожалуйста, выберите остановку.');
+      return;
+    }
+
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id, count, stop_id })
+      });
+
+      if (response.ok) {
+        alert('Билет успешно оформлен!');
+        window.location.href = '/admin/operator';
+      } else {
+        const text = await response.text();
+        alert('Ошибка при оформлении: ' + text);
+      }
+    } catch (err) {
+      alert('Произошла ошибка: ' + err.message);
+    }
+  });
+</script>

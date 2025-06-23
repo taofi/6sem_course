@@ -1,50 +1,101 @@
-<form id="stopsForm">
-    <%- include('../select_part/city_select', { cities }) %>
 
-        <div class="form-group">
-
-            <label for="time">Время (HH:MM:SS):</label>
-            <input type="time" id="time" name="time" required step="1">
-        </div>
-        <div class="form-group">
-
-            <label for="name">Название остановки:</label>
-            <input type="text" id="name" name="name" required>
-        </div>
-        <div class="form-group">
-
-            <label for="address">Адрес:</label>
-            <input type="text" id="address" name="address" required>
-        </div>
-        <button type="submit">Добавить</button>
-</form>
-
-
-<div id="stopsMessage"></div>
-
-<script>
-document.getElementById('stopsForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    const formData = {
+  <div id="formWrapper">
+    <form id="stopsForm">
+      <%- include('../select_part/city_select', { cities }) %>
+  
+      <div class="form-group">
+        <label for="time">Время (HH:MM:SS):</label>
+        <input type="time" id="time" name="time" required step="1">
+      </div>
+      <div class="form-group">
+        <label for="name">Название остановки:</label>
+        <input type="text" id="name" name="name" required>
+      </div>
+      <div class="form-group">
+        <label for="address">Адрес:</label>
+        <input type="text" id="address" name="address" required>
+      </div>
+      <div class="form-group">
+        <label for="latitude">Широта:</label>
+        <input type="number" id="latitude" name="latitude" step="any" required>
+      </div>
+      <div class="form-group">
+        <label for="longitude">Долгота:</label>
+        <input type="number" id="longitude" name="longitude" step="any" required>
+      </div>
+      <button type="submit">Добавить</button>
+    </form>
+  
+    <div id="mapBlock"></div>
+  </div>
+  
+  <div id="stopsMessage"></div>
+  
+  <script>
+    let map;
+    let placemark;
+  
+    function initMap() {
+      if (!map) {
+        map = new ymaps.Map('mapBlock', {
+          center: [55.76, 37.64],
+          zoom: 10,
+          controls: ['zoomControl']
+        });
+      }
+    }
+  
+    function updateMap(lat, lon) {
+      if (!map) initMap();
+  
+      const coords = [lat, lon];
+      map.setCenter(coords, 14);
+  
+      if (!placemark) {
+        placemark = new ymaps.Placemark(coords);
+        map.geoObjects.add(placemark);
+      } else {
+        placemark.geometry.setCoordinates(coords);
+      }
+    }
+  
+    document.getElementById('latitude').addEventListener('input', updateCoords);
+    document.getElementById('longitude').addEventListener('input', updateCoords);
+  
+    function updateCoords() {
+      const lat = parseFloat(document.getElementById('latitude').value);
+      const lon = parseFloat(document.getElementById('longitude').value);
+  
+      if (!isNaN(lat) && !isNaN(lon)) {
+        updateMap(lat, lon);
+      }
+    }
+  
+    document.getElementById('stopsForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+  
+      const formData = {
         city_id: document.getElementById('city_id').value,
         time: document.getElementById('time').value,
         name: document.getElementById('name').value,
-        address: document.getElementById('address').value
-    };
-
-    try {
+        address: document.getElementById('address').value,
+        latitude: parseFloat(document.getElementById('latitude').value),
+        longitude: parseFloat(document.getElementById('longitude').value),
+      };
+  
+      try {
         const response = await fetch('/api/stops', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
         });
-
+  
         const data = await response.json();
-        alert(data.message || 'Остановка успешно добавлен');
+        alert(data.message || 'Остановка успешно добавлена');
         location.reload();
-    } catch (error) {
-        document.getElementById('stopsMessage').innerText = 'Ошибка при добавлении ' + error;
-    }
-});
-</script>
+      } catch (error) {
+        document.getElementById('stopsMessage').innerText = 'Ошибка при добавлении: ' + error;
+      }
+    });
+  </script>
+  

@@ -1,52 +1,42 @@
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const dateInput = document.getElementById("date");
-    const today = new Date().toISOString().split('T')[0];
-    dateInput.min = today;
-    if (!dateInput.value) {
-      dateInput.value = today;
-    }
-  });
-</script>
-
-
 <section class="search-section">
-    <div class="container">
-      <h2>Поиск рейса</h2>
-      <form action="/search" method="GET" class="search-form">
-        <div class="form-row">
-          <div class="form-group">
-            <select id="from" name="from" required>
-              <option value="" disabled selected>Выберите город</option>
-              <% cities.forEach(city => { %>
-                <option value="<%= city.name %>" <%= query?.from === city.name ? 'selected' : '' %>><%= city.name %></option>
-              <% }) %>
-            </select>
-            <label for="from">Откуда:</label>
-          </div>
-  
-          <div class="form-group">
-            <select id="to" name="to" required>
-              <option value="" disabled selected>Выберите город</option>
-            </select>
-            <label for="to">Куда:</label>
-          </div>
-  
-          <div class="form-group">
-            <input type="date" id="date" name="date" value="<%= query?.date || (new Date().toISOString().split('T')[0]) %>" required>
-            <label for="date">Дата:</label>
-          </div>
-  
-          <div class="form-group">
-            <input type="number" id="passengers" name="passengers" min="1" value="<%= query?.passengers || 1 %>" required>
-            <label for="passengers">Число пассажиров:</label>
-          </div>
-  
-          <div class="form-group">
-            <button type="submit">Найти</button>
-          </div>
+  <div class="container">
+    <h2>Поиск рейса</h2>
+    <form action="/search" method="GET" class="search-form">
+      <div class="form-row">
+        <div class="form-group">
+          <select id="from" name="from" required>
+            <option value="" disabled <%= !query?.from ? 'selected' : '' %>>Выберите город</option>
+            <% cities.forEach(city => { %>
+              <option value="<%= city.city_id %>" <%= query?.from == city.city_id ? 'selected' : '' %>><%= city.name %></option>
+            <% }) %>
+          </select>
+          <label for="from">Откуда:</label>
         </div>
-      </form>
-    </div>
-  </section>
-  
+
+        <div class="form-group">
+          <select id="to" name="to" required>
+            <option value="" disabled <%= !query?.to ? 'selected' : '' %>>Выберите город</option>
+            <% cities.forEach(city => { %>
+              <option value="<%= city.city_id %>" <%= query?.to == city.city_id ? 'selected' : '' %>><%= city.name %></option>
+            <% }) %>
+          </select>
+          <label for="to">Куда:</label>
+        </div>
+
+        <div class="form-group">
+          <input type="date" id="date" name="date" value="<%= query?.date || (new Date().toISOString().split('T')[0]) %>" required>
+          <label for="date">Дата:</label>
+        </div>
+
+        <div class="form-group">
+          <input type="number" id="passengers" name="passengers" min="1" value="<%= query?.passengers || 1 %>" required>
+          <label for="passengers">Число пассажиров:</label>
+        </div>
+
+        <div class="form-group">
+          <button type="submit">Найти</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>

@@ -1,0 +1,72 @@
+<div id="userMessage"></div>
+
+<form id="userForm">
+  <div class="form-group">
+    <input type="text" id="login" name="login" required placeholder=" ">
+    <label>Логин</label>
+  </div>
+  <div class="form-group">
+    <input type="password" id="pass" name="pass" required placeholder=" ">
+    <label>Пароль</label>
+  </div>
+  <div class="form-group">
+    <select id="role" name="role" required>
+      <option value="" disabled selected>Выберите роль</option>
+      <option value="user">Пользователь</option>
+      <option value="admin">Администратор</option>
+      <option value="operator">Оператор</option>
+      <option value="driver">Водитель</option>
+    </select>
+    <label>Роль</label>
+  </div>
+  <div class="form-group">
+    <input type="text" id="name" name="name" required placeholder=" ">
+    <label>Имя</label>
+  </div>
+  <div class="form-group">
+    <input type="text" id="last_name" name="last_name" required placeholder=" ">
+    <label>Фамилия</label>
+  </div>
+  <div class="form-group">
+    <input type="text" id="user_number" name="user_number" required placeholder=" ">
+    <label>Телефон</label>
+  </div>
+  <div class="button-container">
+    <button type="submit">Добавить</button>
+  </div>
+</form>
+
+<script>
+  document.getElementById('userForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const formData = {
+    login: document.getElementById('login').value,
+    pass: document.getElementById('pass').value,
+    role: document.getElementById('role').value,
+    name: document.getElementById('name').value,
+    last_name: document.getElementById('last_name').value,
+    user_number: document.getElementById('user_number').value,
+  };
+  console.log(formData);
+  try {
+    const response = await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Ошибка сервера');
+    }
+
+    alert(data.message || 'Пользователь успешно добавлен');
+    location.reload();
+  } catch (error) {
+    document.getElementById('userMessage').innerText = error.message || 'Ошибка при добавлении пользователя';
+  }
+});
+
+</script>

@@ -1,0 +1,76 @@
+<section class="user-profile">
+  <% if (user.role === 'admin') { %>
+    <a href="/admin" class="btn" style="margin-right: 10px;">Панель администратора</a>
+  <% } %>
+  <% if (user.role === 'operator') { %>
+    <a href="/admin/operator" class="btn">Панель оператора</a>
+  <% } %>
+  <h2>Добро пожаловать, <%= user.name %>!</h2>
+  <p><strong>Логин:</strong> <%= user.login %></p>
+  <p><strong>Имя:</strong> <%= user.name %></p>
+  <p><strong>Фамилия:</strong> <%= user.last_name %></p>
+  <p><strong>Номер телефона:</strong> <%= user.user_number %></p>
+
+  <a href="/profile/edit" class="btn">Редактировать учетную запись</a>
+
+  <button id="notify-btn" class="btn" type="button">Подключить уведомление</button>
+  <div id="notify-result" style="margin-top: 10px; font-weight: bold;"></div>
+</section>
+
+<script>
+  document.getElementById('notify-btn').addEventListener('click', () => {
+    fetch('/profile/generateCode')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById('notify-result').textContent = `Код уведомления: ${data.code}`;
+        } else {
+          document.getElementById('notify-result').textContent = 'Ошибка: код не сгенерирован';
+        }
+      })
+      .catch(() => {
+        document.getElementById('notify-result').textContent = 'Ошибка при получении кода';
+      });
+  });
+</script>
+<section class="tickets-section" style="padding: 20px; background-color: #f9f9f9; border-radius: 10px; margin-top: 20px;">
+  <h3 style="margin-bottom: 15px; font-size: 24px;">Ваши билеты</h3>
+  <div class="tickets-list">
+    <%- include('../partials/list/tickets-list.ejs', { tickets: tickets, error: error }) %>
+  </div>
+</section>
+<% if (user.role === 'driver') { %>
+<section class="flights-table-section">
+  <div class="container">
+    <h2>Список рейсов</h2>
+    <% if (flights && flights.length > 0) { %>
+      <div class="table-wrapper">
+        <table class="flights-table">
+          <thead>
+            <tr>
+              <th>Маршрут</th>
+              <th>Машина</th>
+              <th>Время отправления</th>
+              <th>Время в пути</th>
+              <th>Обратный рейс</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% flights.forEach(flight => { %>
+              <tr data-id="<%= flight.flight_id %>">
+                <td><%= flight.route_startCity %> → <%= flight.route_finishCity %></td>
+                <td><%= flight.car_brand %> <%= flight.car_number %> (мест: <%= flight.car_capacity %>)</td>
+                <td><%= new Date(flight.start_time).toLocaleString() %></td>
+                <td><%= flight.travel_time %></td>
+                <td><%= flight.return_flight ? 'Обратный' : 'Прямой' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <p>Рейсы не найдены.</p>
+    <% } %>
+  </div>
+</section>
+<% } %>

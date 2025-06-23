@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const { initializeExpress } = require('./config/express');
 const routes = require('./routes');
+const monitorCodes = require('./queue/codeWatcher')
 
 const app = express();
 
@@ -25,3 +26,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Сервер запущен на http://localhost:${PORT}`);
 });
+
+monitorCodes();

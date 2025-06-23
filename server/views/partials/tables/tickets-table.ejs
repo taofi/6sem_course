@@ -3,14 +3,15 @@
     <h2>Список билетов</h2>
 
     <% if (tickets && tickets.length > 0) { %>
+    <div class="table-wrapper">
+
       <table class="tickets-table">
         <thead>
           <tr>
-            <th>ID билета</th>
-            <th>Пользователь</th>
-            <th>Рейс</th>
-            <th>Остановка</th>
-            <th>Количество мест</th>
+            <th data-sort="number">ID билета</th>
+            <th data-sort="text">Пользователь</th>
+            <th data-sort="text">Остановка</th>
+            <th data-sort="text">Количество мест</th>
             <th>Действия</th>
           </tr>
         </thead>
@@ -19,14 +20,17 @@
             <tr data-id="<%= ticket.ticket_id %>">
               <td><%= ticket.ticket_id %></td>
               <td><%= ticket.user_name %></td>
-              <td><%= ticket.flight_id %></td>
               <td><%= ticket.stop_name %></td>
               <td><%= ticket.count %></td>
-              <td><button class="delete-ticket-btn">Удалить</button></td>
+              <td>
+                <button class="edit-ticket-btn">Изменить</button>
+                <button class="delete-ticket-btn">Удалить</button>
+              </td>
             </tr>
           <% }) %>
         </tbody>
       </table>
+      </div>
     <% } else { %>
       <p>Билеты не найдены.</p>
     <% } %>
@@ -58,5 +62,16 @@
         }
       });
     });
+
+    document.querySelectorAll('.edit-ticket-btn').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const row = e.target.closest('tr');
+        const ticketId = row.dataset.id;
+        window.location.href = `/admin/tickets/edit/${ticketId}`;
+      });
+    });
+
+    enableTableSorting('.tickets-table');
+    enableTableSearch('.tickets-table');
   });
 </script>

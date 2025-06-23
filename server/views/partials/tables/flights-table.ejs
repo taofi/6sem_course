@@ -1,69 +1,213 @@
 <section class="flights-table-section">
   <div class="container">
     <h2>Список рейсов</h2>
+    <% if (flights && flights.length> 0) { %>
+      <div class="table-wrapper">
+        <table class="flights-table">
+          <thead>
+            <tr>
+              <th data-sort="number">ID рейса</th>
+              <th data-sort="text">Маршрут</th>
+              <th data-sort="text">Водитель</th>
+              <th data-sort="text">Машина</th>
+              <th data-sort="number">Цена</th>
+              <th data-sort="text">Время отправления</th>
+              <th data-sort="text">Время в пути</th>
+              <th>Обратный рейс</th>
+              <th data-sort="number">Свободно мест</th>
+              <th>Действия</th>
 
-    <% if (flights && flights.length > 0) { %>
-      <table class="flights-table">
-        <thead>
-          <tr>
-            <th>ID рейса</th>
-            <th>Маршрут</th>
-            <th>Водитель</th>
-            <th>Телефон</th>
-            <th>Машина ID</th>
-            <th>Цена</th>
-            <th>Время отправления</th>
-            <th>Время в пути</th>
-            <th>Действия</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% flights.forEach(flight => { %>
-            <tr data-id="<%= flight.flight_id %>">
-              <td><%= flight.flight_id %></td>
-              <td><%= flight.start_city_name %> → <%= flight.finish_city_name %></td>
-              <td><%= flight.driver_name %> <%= flight.driver_last_name %></td>
-              <td><%= flight.driver_phone_number %></td>
-              <td><%= flight.car_id %></td>
-              <td><%= flight.price %> <%= currencySymbol %></td>
-              <td><%= new Date(flight.start_time).toLocaleString() %></td>
-              <td><%= flight.travel_time %></td>
-              <td><button class="delete-flight-btn">Удалить</button></td>
+              <th>Действия</th>
             </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    <% } else { %>
-      <p>Рейсы не найдены.</p>
-    <% } %>
+          </thead>
+          <tbody>
+            <% flights.forEach(flight=> { %>
+              <tr data-id="<%= flight.flight_id %>">
+                <td>
+                  <%= flight.flight_id %>
+                </td>
+                <td>
+                  <select name="route_id" disabled>
+                    <% routes.forEach(route=> { %>
+                      <option value="<%= route.route_id %>" <%=route.route_id===flight.route_id ? 'selected' : '' %>>
+                        <%= route.startCity %> → <%= route.finishCity %>
+                      </option>
+                      <% }) %>
+                  </select>
+                </td>
+                <td>
+                  <select id="driver_id" name="driver_id" required disabled>
+                    <% drivers.forEach(driver=> { %>
+                      <option value="<%= driver.user_id %>" <%=driver.user_id===flight.driver_id ? 'selected' : '' %>>
+                        <%= driver.name %>
+                          <%= driver.last_name %>
+                            <%= driver.user_number %>
+                      </option>
+                      <% }) %>
+                  </select>
+                </td>
+
+                <td>
+                  <select name="car_id" disabled>
+                    <% cars.forEach(car=> { %>
+                      <option value="<%= car.car_id %>" <%=car.car_id===flight.car_id ? 'selected' : '' %>>
+                        <%= car.car_brand %>
+                          <%= car.car_number %> (мест: <%= car.capacity %>)
+                      </option>
+                      <% }) %>
+                  </select>
+                </td>
+                <td><input style="width: 80px;" type="number" value="<%= flight.price %>" disabled></td>
+                <td><input type="datetime-local" value="<%= new Date(flight.start_time).toISOString().slice(0, 16) %>"
+                    disabled></td>
+                <td><input style="width: 80px;" type="text" value="<%= flight.travel_time %>" disabled></td>
+                <td>
+                  <select name="return_flight" disabled>
+                    <option value="false" <%= !flight.return_flight ? 'selected' : '' %>>Прямой</option>
+                    <option value="true" <%= flight.return_flight ? 'selected' : '' %>>Oбратный</option>
+                  </select>
+                  
+                </td>
+                <td>
+                  <%= flight.available_seats %>
+                </td>
+                <td>
+                  <% if (flight.available_seats > 0) { %>
+                    <a href="/admin/orderTicket/<%= flight.flight_id %>" class="btn btn-order">Оформить билет</a>
+                  <% } else { %>
+                    <span>Нет мест</span>
+                  <% } %>
+                </td>
+                
+                <td>
+                  <button class="edit-btn">Изменить</button>
+                  <button class="save-btn" style="display:none;">Сохранить</button>
+                  <button class="cancel-btn" style="display:none;">Отмена</button>
+                  <button class="delete-flight-btn">Удалить</button>
+                </td>
+
+
+              </tr>
+              <% }) %>
+          </tbody>
+        </table>
+
+      </div>
+      <% } else { %>
+        <p>Рейсы не найдены.</p>
+        <% } %>
   </div>
 </section>
-
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    // Удаление
     document.querySelectorAll('.delete-flight-btn').forEach(button => {
       button.addEventListener('click', async (e) => {
         const row = e.target.closest('tr');
         const flightId = row.dataset.id;
+        if (!confirm('Удалить рейс?')) return;
 
-        const confirmed = confirm('Удалить рейс?');
-        if (!confirmed) return;
+        try {
+          const res = await fetch('/api/flight', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: flightId })
+          });
 
-        const res = await fetch('/api/flights', {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ id: flightId })
-        });
-
-        if (res.ok) {
-          row.remove();
-        } else {
-          const error = await res.json();
-          alert('Ошибка при удалении: ' + (error.message || 'Неизвестная ошибка'));
+          if (res.ok) {
+            row.remove();
+          } else {
+            const error = await res.json();
+            alert('Ошибка при удалении: ' + (error.message || 'Неизвестная ошибка'));
+          }
+        } catch {
+          alert('Ошибка сети при удалении');
         }
       });
     });
+
+    // Редактирование
+    document.querySelectorAll('.edit-btn').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const row = e.target.closest('tr');
+        const inputs = row.querySelectorAll('input, select');
+        inputs.forEach(i => i.disabled = false);
+
+        row.querySelector('.edit-btn').style.display = 'none';
+        row.querySelector('.delete-flight-btn').style.display = 'none';
+        row.querySelector('.save-btn').style.display = 'inline-block';
+        row.querySelector('.cancel-btn').style.display = 'inline-block';
+
+        row.dataset.oldValues = JSON.stringify(Array.from(inputs).map(i => i.value));
+      });
+    });
+
+    // Отмена
+    document.querySelectorAll('.cancel-btn').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const row = e.target.closest('tr');
+        const inputs = row.querySelectorAll('input, select');
+        const oldValues = JSON.parse(row.dataset.oldValues);
+
+        inputs.forEach((input, i) => {
+          input.value = oldValues[i];
+          input.disabled = true;
+        });
+
+        row.querySelector('.edit-btn').style.display = 'inline-block';
+        row.querySelector('.delete-flight-btn').style.display = 'inline-block';
+        row.querySelector('.save-btn').style.display = 'none';
+        row.querySelector('.cancel-btn').style.display = 'none';
+      });
+    });
+
+    // Сохранение
+    document.querySelectorAll('.save-btn').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const row = e.target.closest('tr');
+        const flightId = row.dataset.id;
+        const [routeSelect, driverSelect, carSelect] = row.querySelectorAll('select');
+        const [priceInput, startTimeInput, travelTimeInput] = row.querySelectorAll('input');
+        const returnFlightSelect = row.querySelector('select[name="return_flight"]');
+        const data = {
+          flight_id: parseInt(flightId),
+          route_id: parseInt(routeSelect.value),
+          driver_id: parseInt(driverSelect.value),
+          car_id: parseInt(carSelect.value),
+          price: parseFloat(priceInput.value),
+          start_time: startTimeInput.value,
+          travel_time: travelTimeInput.value,
+          return_flight: returnFlightSelect.value === 'true'
+        };
+
+
+
+        try {
+          const res = await fetch('/api/flight', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+
+          if (res.ok) {
+            [routeSelect, driverSelect, carSelect, priceInput, startTimeInput, travelTimeInput, returnFlightSelect]
+              .forEach(i => i.disabled = true);
+
+            row.querySelector('.edit-btn').style.display = 'inline-block';
+            row.querySelector('.delete-flight-btn').style.display = 'inline-block';
+            row.querySelector('.save-btn').style.display = 'none';
+            row.querySelector('.cancel-btn').style.display = 'none';
+          } else {
+            const error = await res.json();
+            alert('Ошибка при сохранении: ' + (error.message || 'Неизвестная ошибка'));
+          }
+        } catch {
+          alert('Ошибка сети при сохранении');
+        }
+      });
+    });
+
+    enableTableSorting('.flights-table');
+    enableTableSearch('.flights-table');
   });
 </script>

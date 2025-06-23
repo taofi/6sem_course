@@ -1,41 +1,44 @@
 <section class="drivers-table-section">
   <div class="container">
     <h2>Список водителей</h2>
+    <div class="table-wrapper">
 
-    <% if (drivers && drivers.length > 0) { %>
-      <table class="drivers-table">
-        <thead>
-          <tr>
-            <th>ID водителя</th>
-            <th>Имя</th>
-            <th>Фамилия</th>
-            <th>Телефон</th>
-            <th>Действия</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% drivers.forEach(driver => { %>
-            <tr data-id="<%= driver.driver_id %>">
-              <td><%= driver.driver_id %></td>
-              <td><input type="text" value="<%= driver.name %>" disabled></td>
-              <td><input type="text" value="<%= driver.last_name %>" disabled></td>
-              <td><input type="text" value="<%= driver.phone_number %>" disabled></td>
-              <td>
-                <button class="edit-btn">Изменить</button>
-                <button class="save-btn" style="display:none;">Сохранить</button>
-                <button class="cancel-btn" style="display:none;">Отмена</button>
-                <button class="delete-driver-btn">Удалить</button>
-              </td>
+      <% if (drivers && drivers.length> 0) { %>
+        <table class="drivers-table">
+          <thead>
+            <tr>
+              <th data-sort="number">ID водителя</th>
+              <th data-sort="text">Имя</th>
+              <th data-sort="text">Фамилия</th>
+              <th data-sort="text">Телефон</th>
+              <th>Действия</th>
             </tr>
-          <% }) %>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <% drivers.forEach(driver=> { %>
+              <tr data-id="<%= driver.driver_id %>">
+                <td>
+                  <%= driver.driver_id %>
+                </td>
+                <td><input type="text" value="<%= driver.name %>" disabled></td>
+                <td><input type="text" value="<%= driver.last_name %>" disabled></td>
+                <td><input type="text" value="<%= driver.phone_number %>" disabled></td>
+                <td>
+                  <button class="edit-btn">Изменить</button>
+                  <button class="save-btn" style="display:none;">Сохранить</button>
+                  <button class="cancel-btn" style="display:none;">Отмена</button>
+                  <button class="delete-driver-btn">Удалить</button>
+                </td>
+              </tr>
+              <% }) %>
+          </tbody>
+        </table>
+    </div>
     <% } else { %>
       <p>Водители не найдены.</p>
-    <% } %>
+      <% } %>
   </div>
 </section>
-
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     // Удаление
@@ -46,14 +49,22 @@
 
         if (!confirm('Удалить водителя?')) return;
 
-        const res = await fetch('/api/drivers', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: driverId })
-        });
+        try {
+          const res = await fetch('/api/drivers', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: driverId })
+          });
 
-        if (res.ok) row.remove();
-        else alert('Ошибка при удалении');
+          if (res.ok) {
+            row.remove();
+          } else {
+            const error = await res.json();
+            alert('Ошибка при удалении: ' + (error.message || 'Неизвестная ошибка'));
+          }
+        } catch {
+          alert('Ошибка сети при удалении');
+        }
       });
     });
 
@@ -104,27 +115,33 @@
           phone_number: phoneInput.value
         };
 
-        const res = await fetch('/api/driver', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
+        try {
+          const res = await fetch('/api/driver', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
 
-        if (res.ok) {
-          nameInput.disabled = true;
-          lastNameInput.disabled = true;
-          phoneInput.disabled = true;
+          if (res.ok) {
+            nameInput.disabled = true;
+            lastNameInput.disabled = true;
+            phoneInput.disabled = true;
 
-          row.querySelector('.edit-btn').style.display = 'inline-block';
-          row.querySelector('.save-btn').style.display = 'none';
-          row.querySelector('.cancel-btn').style.display = 'none';
-          row.querySelector('.delete-driver-btn').style.display = 'inline-block';
-        } else {
-          const error = await res.json();
-          alert('Ошибка при сохранении: ' + (error.message || 'Неизвестная ошибка'));
-
+            row.querySelector('.edit-btn').style.display = 'inline-block';
+            row.querySelector('.save-btn').style.display = 'none';
+            row.querySelector('.cancel-btn').style.display = 'none';
+            row.querySelector('.delete-driver-btn').style.display = 'inline-block';
+          } else {
+            const error = await res.json();
+            alert('Ошибка при сохранении: ' + (error.message || 'Неизвестная ошибка'));
+          }
+        } catch {
+          alert('Ошибка сети при сохранении');
         }
       });
     });
+
+    enableTableSorting('.drivers-table');
+    enableTableSearch('.drivers-table');
   });
 </script>

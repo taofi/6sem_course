@@ -1,0 +1,35 @@
+<div class="custom-select-container" tabindex="0" id="customSelect">
+    <div class="selected" id="selectedOption">Выберите остановку</div>
+    <div class="options" id="optionsList">
+        <% stops.forEach(stop=> { %>
+            <div class="option" data-id="<%= stop.stop_id %>" data-time="<%= stop.time %>" data-name="<%= stop.name %>"
+                data-address="<%= stop.address %>" data-latitude="<%= stop.latitude %>"
+                data-longitude="<%= stop.longitude %>">
+                <span class="stop-name">
+                    <%= stop.name %>
+                </span>
+                <span class="arrival-time" style="margin-left: 10px;"></span>
+                <img src="/pictures/information.png" class="info-icon" data-id="<%= stop.stop_id %>"
+                    style="margin-left: 10px;">
+            </div>
+            <% }); %>
+    </div>
+
+
+</div>
+
+<div id="popup"
+    style="display:none; position:fixed; top:20px; left:30%; transform:translateX(-50%); background:white; padding:20px; border:1px solid black; z-index:999; width: 400px; box-sizing: border-box;">
+    <div id="popup-content"></div>
+    <div id="popup-map" style="height: 350px;"></div>
+
+    <button type="button" onclick="closePopup()">Закрыть</button>
+</div>
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        initCustomSelect('<%= flight.start_time %>');
+    });
+</script>

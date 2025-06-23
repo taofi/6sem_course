@@ -1,0 +1,39 @@
+<section class="tickets-section">
+  <div class="container">
+    <h2>Билеты пользователя</h2>
+
+    <% if (tickets && tickets.length > 0) { %>
+      <table class="tickets-table">
+        <thead>
+          <tr>
+            <th>id</th>
+
+            <th>Маршрут</th>
+            <th>Город посадки</th>
+            <th>Дата</th>
+            <th>Время</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% tickets.forEach(ticket => { 
+            const start = ticket.start_city || 'не указано';
+            const finish = ticket.finish_city || 'не указано';
+            const stop = ticket.stop_name || 'не указано';
+            const startTime = ticket.start_time ? new Date(ticket.start_time) : null;
+          %>
+            <tr>
+              <td><%= ticket.ticket_id %></td>
+              <td><%= start %> → <%= finish %></td>
+              <td><%= stop %></td>
+              <td><%= startTime ? startTime.toLocaleDateString() : '-' %></td>
+              <td><%= startTime ? startTime.toLocaleTimeString() : '-' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+        
+      </table>
+    <% } else { %>
+      <p>Билеты не найдены.</p>
+    <% } %>
+  </div>
+</section>

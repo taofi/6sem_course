@@ -42,8 +42,8 @@ class DriverDAO {
       const driver = await Driver.findByPk(driverId);
       if (driver) {
         driver.name = driverData.name;
-        driver.last_name = driverData.lastName;
-        driver.phone_number = driverData.phoneNumber;
+        driver.last_name = driverData.last_name;
+        driver.phone_number = driverData.phone_number;
         return await driver.save();
       }
       return null;

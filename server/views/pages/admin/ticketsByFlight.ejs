@@ -1,0 +1,13 @@
+<main>
+    <section>
+        <h3>Информация о рейсе</h3>
+        <p>Маршрут: <%= flights.start_city_name %> → <%= flights.finish_city_name %>
+        </p>
+        <p>Время в пути: <%= flights.travel_time %>
+        </p>
+        <p>Время отправления: <%= new Date(flights.start_time).toLocaleString() %>
+        </p>
+    </section>
+
+    <%- include('../../partials/tables/tickets-table.ejs', { tickets }) %>
+</main>

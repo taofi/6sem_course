@@ -1,0 +1,53 @@
+<section class="ticket-edit">
+    <h2>Изменение билета</h2>
+  
+  
+    <form action="/ticket/edit/<%= ticket.ticket_id %>" method="POST" id="editTicketForm">
+      <div class="form-group">
+        <label for="count">Количество билетов:</label>
+        <input type="number" name="count" id="count" value="<%= ticket.count %>" min="1" required>
+      </div>
+  
+      <div class="form-group">
+        <h1>Выберите новую остановку</h1>
+        <%- include('../partials/select_part/stops-select', {flight}) %>
+      </div>
+  
+      <input type="hidden" name="stop_id" id="selectedStopId" value="<%= ticket.stop_id %>">
+      <button type="submit" class="btn">Сохранить изменения</button>
+    </form>
+  </section>
+  
+  <script>
+    document.getElementById('editTicketForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+  
+      const form = e.target;
+      const count = form.count.value;
+      const stop_id = form.stop_id.value;
+  
+      if (!stop_id) {
+        alert('Пожалуйста, выберите остановку.');
+        return;
+      }
+  
+      try {
+        const response = await fetch(form.action, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ count, stop_id })
+        });
+  
+        if (response.ok) {
+          alert('Билет обновлён!');
+          window.location.href = '/profile';
+        } else {
+          const text = await response.text();
+          alert('Ошибка: ' + text);
+        }
+      } catch (err) {
+        alert('Ошибка запроса: ' + err.message);
+      }
+    });
+  </script>
+  

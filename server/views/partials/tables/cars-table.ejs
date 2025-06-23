@@ -1,38 +1,42 @@
 <section class="cars-table-section">
   <div class="container">
     <h2>Список машин</h2>
+    <div class="table-wrapper">
 
-    <% if (cars && cars.length > 0) { %>
-      <table class="cars-table">
-        <thead>
-          <tr>
-            <th>ID машины</th>
-            <th>Номер</th>
-            <th>Марка</th>
-            <th>Вместимость</th>
-            <th>Действия</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% cars.forEach(car => { %>
-            <tr data-id="<%= car.car_id %>">
-              <td><%= car.car_id %></td>
-              <td><input type="text" value="<%= car.car_number %>" disabled></td>
-              <td><input type="text" value="<%= car.car_brand %>" disabled></td>
-              <td><input type="number" value="<%= car.capacity %>" disabled></td>
-              <td>
-                <button class="edit-btn">Изменить</button>
-                <button class="save-btn" style="display:none;">Сохранить</button>
-                <button class="cancel-btn" style="display:none;">Отмена</button>
-                <button class="delete-btn">Удалить</button>
-              </td>
+      <% if (cars && cars.length> 0) { %>
+        <table class="cars-table">
+          <thead>
+            <tr>
+              <th data-sort="number">ID машины</th>
+              <th data-sort="text">Номер</th>
+              <th data-sort="text">Марка</th>
+              <th data-sort="number">Вместимость</th>
+              <th>Действия</th>
             </tr>
-          <% }) %>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <% cars.forEach(car=> { %>
+              <tr data-id="<%= car.car_id %>">
+                <td>
+                  <%= car.car_id %>
+                </td>
+                <td><input type="text" value="<%= car.car_number %>" disabled></td>
+                <td><input type="text" value="<%= car.car_brand %>" disabled></td>
+                <td><input type="number" value="<%= car.capacity %>" disabled></td>
+                <td>
+                  <button class="edit-btn">Изменить</button>
+                  <button class="save-btn" style="display:none;">Сохранить</button>
+                  <button class="cancel-btn" style="display:none;">Отмена</button>
+                  <button class="delete-btn">Удалить</button>
+                </td>
+              </tr>
+              <% }) %>
+          </tbody>
+        </table>
+    </div>
     <% } else { %>
       <p>Машины не найдены.</p>
-    <% } %>
+      <% } %>
   </div>
 </section>
 
@@ -45,14 +49,22 @@
 
         if (!confirm('Удалить машину?')) return;
 
-        const res = await fetch('/api/cars', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: carId })
-        });
+        try {
+          const res = await fetch('/api/cars', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: carId })
+          });
 
-        if (res.ok) row.remove();
-        else alert('Ошибка при удалении');
+          if (res.ok) {
+            row.remove();
+          } else {
+            const error = await res.json();
+            alert('Ошибка при удалении: ' + (error.message || 'Неизвестная ошибка'));
+          }
+        } catch (err) {
+          alert('Ошибка сети при удалении');
+        }
       });
     });
 
@@ -101,27 +113,33 @@
           capacity: parseInt(capacityInput.value)
         };
 
-        const res = await fetch('/api/cars', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
+        try {
+          const res = await fetch('/api/cars', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
 
-        if (res.ok) {
-          numberInput.disabled = true;
-          brandInput.disabled = true;
-          capacityInput.disabled = true;
+          if (res.ok) {
+            numberInput.disabled = true;
+            brandInput.disabled = true;
+            capacityInput.disabled = true;
 
-          row.querySelector('.edit-btn').style.display = 'inline-block';
-          row.querySelector('.delete-btn').style.display = 'inline-block';
-          row.querySelector('.save-btn').style.display = 'none';
-          row.querySelector('.cancel-btn').style.display = 'none';
-        } else {
-          const error = await res.json();
-          alert('Ошибка при сохранении: ' + (error.message || 'Неизвестная ошибка'));
+            row.querySelector('.edit-btn').style.display = 'inline-block';
+            row.querySelector('.delete-btn').style.display = 'inline-block';
+            row.querySelector('.save-btn').style.display = 'none';
+            row.querySelector('.cancel-btn').style.display = 'none';
+          } else {
+            const error = await res.json();
+            alert('Ошибка при сохранении: ' + (error.message || 'Неизвестная ошибка'));
+          }
+        } catch (err) {
+          alert('Ошибка сети при сохранении');
         }
       });
     });
+
+    enableTableSorting('.cars-table');
+    enableTableSearch('.cars-table');
   });
 </script>
-

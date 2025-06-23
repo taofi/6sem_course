@@ -1,0 +1,38 @@
+.custom-select-container {
+    position: relative;
+    width: 300px;
+    user-select: none;
+  }
+  .selected {
+    padding: 10px;
+    border: 1px solid #ccc;
+    background: white;
+    cursor: pointer;
+  }
+  .options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    border: 1px solid #ccc;
+    background: white;
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 10;
+    display: none;
+  }
+  .option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  .option:hover {
+    background-color: #f0f0f0;
+  }
+  .info-icon {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
